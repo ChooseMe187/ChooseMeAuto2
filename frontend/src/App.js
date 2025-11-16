@@ -1,20 +1,47 @@
 import React from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// Navbar
+import NavBar from "./components/NavBar";
+
+// Existing pages
 import VehiclesPage from "./pages/VehiclesPage";
 import VehicleDetailPage from "./pages/VehicleDetailPage";
 
+// New pages
+import HomePage from "./pages/HomePage";
+import UsedVehiclesPage from "./pages/UsedVehiclesPage";
+import NewVehiclesPage from "./pages/NewVehiclesPage";
+import PreApprovalPage from "./pages/PreApprovalPage";
+import ContactPage from "./pages/ContactPage";
+import TestDrivePage from "./pages/TestDrivePage";
+
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
+    <BrowserRouter>
+      <NavBar />
+
+      <main style={{ maxWidth: 1200, margin: "0 auto", padding: "1rem" }}>
         <Routes>
-          <Route path="/" element={<Navigate to="/vehicles" replace />} />
+          <Route path="/" element={<HomePage />} />
+          
+          {/* Inventory */}
           <Route path="/vehicles" element={<VehiclesPage />} />
           <Route path="/vehicle/:stock_id" element={<VehicleDetailPage />} />
+
+          {/* Top nav tabs */}
+          <Route path="/used" element={<UsedVehiclesPage />} />
+          <Route path="/new" element={<NewVehiclesPage />} />
+          <Route path="/preapproved" element={<PreApprovalPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/test-drive" element={<TestDrivePage />} />
+
+          {/* Fallback */}
+          <Route path="*" element={<HomePage />} />
         </Routes>
-      </BrowserRouter>
-    </div>
+      </main>
+    </BrowserRouter>
   );
 }
 

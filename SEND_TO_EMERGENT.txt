@@ -1,0 +1,112 @@
+Subject: Vehicles not displaying on preview – need API & static assets routing verified
+
+Hi Emergent Support,
+
+I'm testing my Choose Me Auto dealer inventory app, and everything works correctly in my local environment, but vehicles are not displaying on the preview URL.
+
+Preview URL: https://dealer-inventory.preview.emergentagent.com/
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ LOCAL ENVIRONMENT (WORKING)
+
+Locally, the app works perfectly:
+
+• 112 vehicles loaded from goodchev_renton_inventory_enriched.csv
+• 529 local vehicle photos in frontend/public/vehicles/
+• FastAPI backend exposes:
+  - GET /api/vehicles
+  - GET /api/vehicles/{stock_id}
+• React frontend renders:
+  - /vehicles (search results page)
+  - /vehicle/:stock_id (vehicle detail page)
+• All image_url values are local paths: /vehicles/P57801_1.jpg
+• No external image URLs (no GoodChev links)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚠️ PREVIEW ENVIRONMENT ISSUE
+
+On the preview URL, vehicles do not render. This appears to be a deployment/routing issue.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 PLEASE VERIFY THESE 4 ITEMS:
+
+1️⃣ Backend API Routing
+
+Test these endpoints from your environment:
+
+    curl https://dealer-inventory.preview.emergentagent.com/api/vehicles
+    curl https://dealer-inventory.preview.emergentagent.com/api/vehicles/P57801
+
+Expected: JSON response with vehicle data including stock_id, year, make, model, image_url, image_urls fields.
+
+If 404 or 500: /api/* routes are not correctly proxied to the FastAPI backend (port 8001).
+
+─────────────────────────────────────────────────────────────────────────────────────────
+
+2️⃣ Static Image Hosting
+
+Test image accessibility:
+
+    curl -I https://dealer-inventory.preview.emergentagent.com/vehicles/P57801_1.jpg
+
+Expected: HTTP 200 OK with Content-Type: image/jpeg
+
+If 404: The frontend/public/vehicles/ folder (529 images) was not included in deployment or static file serving is not configured.
+
+─────────────────────────────────────────────────────────────────────────────────────────
+
+3️⃣ Enriched CSV in Deployed Backend
+
+Verify this file exists on the deployed server:
+
+    backend/data/goodchev_renton_inventory_enriched.csv
+
+This file should contain columns:
+• Main Image URL
+• Image URL 2, 3, 4, 5
+
+With values like: /vehicles/P57801_1.jpg
+
+Confirm the backend is reading this enriched CSV (not the original CSV without image URLs).
+
+─────────────────────────────────────────────────────────────────────────────────────────
+
+4️⃣ Frontend → API Base URL
+
+On the preview site, open DevTools → Network tab.
+
+Filter by XHR/Fetch requests.
+
+You should see requests to:
+    https://dealer-inventory.preview.emergentagent.com/api/vehicles
+
+If you see requests to http://localhost:8001/...:
+    The frontend is not using the correct production API base URL.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 EXPECTED WORKING STATE
+
+When correctly configured:
+
+✅ GET /api/vehicles returns all 112 vehicles with image_url and image_urls
+✅ /vehicles page shows all vehicles with real photos
+✅ /vehicle/P57801 shows full detail + image gallery
+✅ All images served from https://dealer-inventory.preview.emergentagent.com/vehicles/...
+✅ No image URLs point to GoodChev or any external host
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 ADDITIONAL INFO
+
+• Frontend configuration: ✅ No hardcoded localhost URLs
+• Environment variable: REACT_APP_BACKEND_URL is set correctly
+• All files committed: ✅ CSV, images, and code are in the repository
+• Code working locally: ✅ 100% functional on development environment
+
+If you can verify and correct the API routing and static file serving in the preview environment, the frontend should start rendering the inventory and photos correctly.
+
+Thank you for your help!

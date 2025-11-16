@@ -22,21 +22,25 @@ const CallForAvailabilityForm = ({ vehicle }) => {
     };
 
     try {
-      // TODO: POST this to your backend lead endpoint when ready
-      // const res = await fetch("/api/vehicle-leads", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(payload),
-      // });
-      // if (!res.ok) throw new Error("Failed to submit lead");
+      const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
+      
+      const res = await fetch(`${API_BASE}/api/vehicle-leads`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-      console.log("Lead payload (wire this to backend):", payload);
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to submit lead");
+      }
 
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      await res.json(); // Lead response from backend
+
       setStatus("success");
       e.target.reset();
     } catch (err) {
-      console.error(err);
+      console.error("Lead submission error:", err);
       setError("Something went wrong. Please try again.");
       setStatus("error");
     }

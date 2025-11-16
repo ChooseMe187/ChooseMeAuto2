@@ -1,0 +1,163 @@
+.cma-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #0b0b0f;
+  color: #ffffff;
+  border-bottom: 1px solid #1f2933;
+}
+
+.cma-navbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Brand / logo */
+
+.cma-logo-link {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+
+.cma-logo-main {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+}
+
+.cma-logo-sub {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Desktop links */
+
+.cma-nav-links-desktop {
+  display: none;
+  gap: 1rem;
+  align-items: center;
+}
+
+.cma-nav-link {
+  text-decoration: none;
+  font-size: 0.9rem;
+  color: #d1d5db;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cma-nav-link:hover {
+  background: #111827;
+  color: #ffffff;
+}
+
+.cma-nav-link-active {
+  background: #2563eb;
+  color: white;
+}
+
+/* CTA button */
+
+.cma-cta-btn {
+  text-decoration: none;
+  background: #22c55e;
+  color: #0b0b0f;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.cma-cta-btn:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+/* Mobile burger */
+
+.cma-burger-btn {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.18rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.cma-burger-line {
+  width: 1.1rem;
+  height: 2px;
+  background: #e5e7eb;
+}
+
+/* Mobile nav */
+
+.cma-nav-links-mobile {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1rem 0.75rem;
+  gap: 0.3rem;
+  background: #050509;
+  border-top: 1px solid #1f2933;
+}
+
+.cma-nav-link-mobile {
+  text-decoration: none;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.35rem;
+  font-size: 0.9rem;
+  color: #d1d5db;
+}
+
+.cma-nav-link-mobile:hover {
+  background: #111827;
+  color: white;
+}
+
+.cma-nav-link-mobile-active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.cma-cta-btn-mobile {
+  margin-top: 0.25rem;
+  text-decoration: none;
+  text-align: center;
+  background: #22c55e;
+  color: #0b0b0f;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+}
+
+/* Desktop breakpoint */
+
+@media (min-width: 768px) {
+  .cma-nav-links-desktop {
+    display: flex;
+  }
+
+  .cma-burger-btn {
+    display: none;
+  }
+
+  .cma-nav-links-mobile {
+    display: none;
+  }
+
+  .cma-navbar-inner {
+    padding: 0.75rem 1.5rem;
+  }
+}

@@ -40,6 +40,16 @@ def load_inventory_from_csv(
                 except ValueError:
                     return None
 
+            # Extract image URLs
+            main_image = (row.get("Main Image URL") or "").strip()
+            extra_images_raw = [
+                (row.get("Image URL 2") or "").strip(),
+                (row.get("Image URL 3") or "").strip(),
+                (row.get("Image URL 4") or "").strip(),
+                (row.get("Image URL 5") or "").strip(),
+            ]
+            extra_images = [u for u in extra_images_raw if u]
+
             vehicle = Vehicle(
                 stock_id=stock_raw,
                 vin=(row.get("VIN") or "").strip(),
@@ -53,6 +63,8 @@ def load_inventory_from_csv(
                 drivetrain=(row.get("Drivetrain") or "").strip() or None,
                 exterior_color=(row.get("Exterior Color") or "").strip() or None,
                 interior_color=(row.get("Interior Color") or "").strip() or None,
+                image_url=main_image or None,
+                image_urls=extra_images,
             )
 
             _INVENTORY_BY_STOCK_ID[vehicle.stock_id] = vehicle

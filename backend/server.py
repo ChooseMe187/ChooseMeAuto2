@@ -10,6 +10,10 @@ from typing import List
 import uuid
 from datetime import datetime, timezone
 
+# Import vehicles router and inventory loader
+from routes.vehicles import router as vehicles_router
+from services.inventory_loader import load_inventory_from_csv
+
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')

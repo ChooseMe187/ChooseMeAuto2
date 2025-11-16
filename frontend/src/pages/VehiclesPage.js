@@ -220,7 +220,23 @@ const VehiclesPage = () => {
                   navigate(`/vehicle/${encodeURIComponent(v.stock_id)}`)
                 }
               >
-                <div className="mb-3 h-40 w-full rounded-lg bg-slate-200" />
+                {/* Vehicle Image */}
+                {v.image_url || (v.image_urls && v.image_urls[0]) ? (
+                  <img
+                    src={v.image_url || v.image_urls[0]}
+                    alt={`${v.year} ${v.make} ${v.model}`}
+                    className="mb-3 h-40 w-full rounded-lg bg-slate-200 object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                      e.currentTarget.nextElementSibling.style.display = "block";
+                    }}
+                  />
+                ) : null}
+                <div 
+                  className="mb-3 h-40 w-full rounded-lg bg-slate-200" 
+                  style={{ display: (v.image_url || (v.image_urls && v.image_urls[0])) ? 'none' : 'block' }}
+                />
 
                 <div className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-500">
                   {v.year} {v.make} {v.model}

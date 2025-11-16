@@ -96,13 +96,55 @@ const VehicleDetailPage = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Left: Image placeholder */}
+          {/* Left: Image Gallery */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
-            <div className="mb-3 h-64 w-full rounded-lg bg-slate-200" />
-            <p className="text-xs text-slate-500">
-              Photos coming soon. This can be wired to real image URLs from your
-              inventory.
-            </p>
+            {(() => {
+              const allImages = [
+                vehicle.image_url,
+                ...(vehicle.image_urls || [])
+              ].filter(Boolean);
+
+              if (allImages.length > 0) {
+                return (
+                  <>
+                    <img
+                      src={allImages[0]}
+                      alt={`${year} ${make} ${model}`}
+                      className="mb-3 h-64 w-full rounded-lg bg-slate-200 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+
+                    {allImages.length > 1 && (
+                      <div className="flex gap-2 overflow-x-auto">
+                        {allImages.slice(1).map((img, idx) => (
+                          <img
+                            key={idx}
+                            src={img}
+                            alt={`${year} ${make} ${model} - ${idx + 2}`}
+                            className="h-16 w-24 flex-shrink-0 rounded-md bg-slate-200 object-cover cursor-pointer hover:opacity-75 transition"
+                            onError={(e) => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                );
+              } else {
+                return (
+                  <>
+                    <div className="mb-3 h-64 w-full rounded-lg bg-slate-200" />
+                    <p className="text-xs text-slate-500">
+                      Photos coming soon. This vehicle currently has no images in the
+                      inventory file.
+                    </p>
+                  </>
+                );
+              }
+            })()}
           </div>
 
           {/* Right: Info */}

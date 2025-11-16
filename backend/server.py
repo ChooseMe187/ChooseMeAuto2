@@ -10,8 +10,9 @@ from typing import List
 import uuid
 from datetime import datetime, timezone
 
-# Import vehicles router and inventory loader
+# Import routers and services
 from routes.vehicles import router as vehicles_router
+from routes.leads import router as leads_router
 from services.inventory_loader import load_inventory_from_csv
 
 

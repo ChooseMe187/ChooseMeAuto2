@@ -9,7 +9,7 @@ _INVENTORY_BY_STOCK_ID: Dict[str, Vehicle] = {}
 
 
 def load_inventory_from_csv(
-    csv_path: Path = Path(__file__).parent.parent / "data" / "goodchev_renton_inventory.csv"
+    csv_path: Path = Path(__file__).parent.parent / "data" / "goodchev_renton_inventory_enriched.csv"
 ) -> None:
     """
     Load vehicles from the CSV into memory.

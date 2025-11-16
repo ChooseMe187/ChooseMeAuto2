@@ -12,6 +12,8 @@
  * @property {string|null} [drivetrain]
  * @property {string|null} [exterior_color]
  * @property {string|null} [interior_color]
+ * @property {string|null} [image_url]
+ * @property {string[]} [image_urls]
  */
 
 // Export empty object for imports

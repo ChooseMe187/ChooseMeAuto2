@@ -1,349 +1,245 @@
 #!/usr/bin/env python3
 """
-Playwright-based scraper to download vehicle photos from GoodChev VDP pages
-and generate an enriched CSV with local image URLs for Choose Me Auto.
+Playwright scraper for downloading REAL vehicle photos from GoodChevrolet
+and enriching the Choose Me Auto inventory CSV.
 
-Usage (from project root):
-
-    pip install playwright requests
-    playwright install
-
-    python scripts/scrape_goodchev_photos_playwright.py \
-        --input-csv backend/data/goodchev_renton_inventory_enriched.csv \
-        --output-csv backend/data/goodchev_renton_inventory_enriched.csv \
-        --image-dir frontend/public/vehicles \
-        --max-images 5
-
-Notes:
-- This script assumes your CSV has at least:
-    - "Stock #" column for stock IDs
-    - "Vehicle URL" column for VDP URLs
-- It will create image URL columns:
-    - "Main Image URL", "Image URL 2" ... "Image URL 5"
-- Image URLs in the CSV will be local paths like:
-    - /vehicles/P57801_1.jpg
+- Loads VDP with JavaScript enabled
+- Attempts to collect up to 5 real vehicle photos per VDP
+- Scrolls page to trigger lazy-loaded galleries
+- Filters out logos, icons, placeholders, and tiny images
+- Saves photos to frontend/public/vehicles/
+- Writes an enriched CSV fully compatible with the existing backend
 """
 
 import argparse
 import csv
-import os
 import re
-import sys
-import time
 from pathlib import Path
-from typing import List, Dict
 
 import requests
-from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import sync_playwright
 
-# --------- CONFIGURABLE FILTERS (TWEAK IF NEEDED) --------- #
-
-# Strings in the image URL that likely indicate logos / junk
-EXCLUDE_PATTERNS = [
-    "logo",
-    "icon",
-    "favicon",
-    "sprite",
-    "placeholder",
-    "spinner",
-    "tracking",
-]
-
-# Minimum width/height (in pixels) for an image to be considered "real"
-MIN_DIMENSION = 300  # can be adjusted if it skips too many or too few
+# Minimum real image dimensions
+MIN_WIDTH = 300
+MIN_HEIGHT = 200
 
 
-def is_probably_vehicle_image(src: str) -> bool:
-    """Heuristic filter to decide if an image URL is likely a real vehicle photo."""
-    if not src:
+def is_real_image(url: str) -> bool:
+    """Filter out obvious non-vehicle images."""
+    if not url:
         return False
-
-    src_lower = src.lower()
-    if not (".jpg" in src_lower or ".jpeg" in src_lower or ".png" in src_lower):
+    bad = ["logo", "placeholder", "default", "spinner", "icon", "svg", "badge"]
+    url_lower = url.lower()
+    if any(b in url_lower for b in bad):
         return False
-
-    if any(pat in src_lower for pat in EXCLUDE_PATTERNS):
-        return False
-
-    return True
+    return url_lower.endswith((".jpg", ".jpeg", ".png", ".webp"))
 
 
-def normalize_image_src(src: str, page_url: str) -> str:
-    """Convert relative URLs to absolute based on the page URL."""
+def normalize(base: str, src: str) -> str:
+    """Turn relative/partial URLs into full URLs."""
     if src.startswith("http://") or src.startswith("https://"):
         return src
-
-    # Handle protocol-relative URLs like //images.cdn.com/...
     if src.startswith("//"):
-        return f"https:{src}"
-
-    # Build absolute URL from relative path
+        return "https:" + src
     from urllib.parse import urljoin
-    return urljoin(page_url, src)
+    return urljoin(base, src)
 
 
-def scrape_vehicle_images_from_page(page, url: str, max_images: int) -> List[str]:
-    """
-    Use Playwright page to load a VDP URL and extract up to max_images image URLs.
-
-    This function:
-    - Waits for network to be mostly idle
-    - Collects candidate <img> elements
-    - Filters by URL pattern and dimension
-    """
-    print(f"  [*] Navigating to: {url}")
-    page.goto(url, wait_until="networkidle", timeout=45000)
-
-    # Give any lazy-loaded galleries a moment
-    page.wait_for_timeout(2000)
-
-    # Grab all image elements
-    img_elements = page.query_selector_all("img")
-
-    candidates = []
-    for img in img_elements:
-        try:
-            src = img.get_attribute("src")
-            if not src:
-                continue
-
-            src = normalize_image_src(src, url)
-
-            if not is_probably_vehicle_image(src):
-                continue
-
-            # Check dimensions via JS to avoid thumbnails / tiny junk
-            box = img.bounding_box()
-            if box is None:
-                # fallback: try JS naturalWidth / naturalHeight
-                width = page.evaluate("(el) => el.naturalWidth", img)
-                height = page.evaluate("(el) => el.naturalHeight", img)
-            else:
-                width = box.get("width", 0)
-                height = box.get("height", 0)
-
-            if (width is None or height is None or
-                    width < MIN_DIMENSION or height < MIN_DIMENSION):
-                continue
-
-            candidates.append(src)
-        except Exception as e:
-            # Don't crash for one bad img
-            print(f"    [!] Error inspecting image element: {e}")
-            continue
-
-    # Deduplicate while preserving order
-    seen = set()
-    unique_candidates = []
-    for src in candidates:
-        if src not in seen:
-            seen.add(src)
-            unique_candidates.append(src)
-
-    chosen = unique_candidates[:max_images]
-    print(f"  [+] Found {len(chosen)} usable images")
-    return chosen
-
-
-def download_image(url: str, dest_path: Path) -> bool:
-    """Download image from URL to dest_path. Returns True on success."""
+def download(url: str, dest: Path) -> bool:
+    """Download an image to dest, returning True on success."""
     try:
-        dest_path.parent.mkdir(parents=True, exist_ok=True)
-        headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; ChooseMeAutoScraper/1.0)",
-            "Referer": url,  # sometimes needed by CDNs
-        }
-        with requests.get(url, headers=headers, stream=True, timeout=30) as r:
-            r.raise_for_status()
-            with open(dest_path, "wb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
+        resp = requests.get(
+            url,
+            timeout=25,
+            stream=True,
+            headers={"User-Agent": "Mozilla/5.0"},
+        )
+        resp.raise_for_status()
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with open(dest, "wb") as f:
+            for chunk in resp.iter_content(1024 * 8):
+                if not chunk:
+                    continue
+                f.write(chunk)
         return True
     except Exception as e:
-        print(f"    [!] Failed to download {url} -> {dest_path}: {e}")
+        print(f"[!] Failed download {url}: {e}")
         return False
 
 
-def enrich_inventory(
-    input_csv: Path,
-    output_csv: Path,
-    image_dir: Path,
-    max_images: int = 5,
-    delay_between: float = 1.5,
-):
+def scrape_images(page, url: str, max_images: int):
     """
-    Main pipeline:
-    - Read input CSV
-    - For each row with Vehicle URL, scrape up to max_images images
-    - Download them as {stock_id}_{i}.jpg
-    - Write enriched CSV with local /vehicles/... image URLs
+    Attempts to collect up to `max_images` REAL vehicle photos.
+
+    Strategy:
+    - Load page & wait for network idle
+    - Scroll through the page several times to trigger lazy-loaded images
+    - On each pass, collect large, non-logo, non-placeholder <img> tags
+    - Stop as soon as we have max_images unique images
     """
+    print(f"🔎 Loading {url}")
+    try:
+        page.goto(url, wait_until="networkidle", timeout=45000)
+    except Exception as e:
+        print(f"⚠️ Timeout or error loading page: {e}")
+        return []
 
-    if not input_csv.exists():
-        print(f"[ERROR] Input CSV not found: {input_csv}")
-        sys.exit(1)
+    # Let JS galleries settle
+    page.wait_for_timeout(2000)
 
-    print(f"[INFO] Reading inventory from: {input_csv}")
-    print(f"[INFO] Images will be saved into: {image_dir}")
-    print(f"[INFO] Enriched CSV will be written to: {output_csv}")
+    collected = []
 
-    with input_csv.open("r", newline="", encoding="utf-8-sig") as f_in:
-        reader = csv.DictReader(f_in)
-        rows = list(reader)
-
-    fieldnames = reader.fieldnames or []
-    # Ensure we have Stock # and Vehicle URL
-    stock_key = None
-    vehicle_url_key = None
-
-    for candidate in ["Stock #", "stock_id", "Stock"]:
-        if candidate in fieldnames:
-            stock_key = candidate
-            break
-
-    for candidate in ["Vehicle URL", "vehicle_url", "URL"]:
-        if candidate in fieldnames:
-            vehicle_url_key = candidate
-            break
-
-    if not stock_key or not vehicle_url_key:
-        print(f"[ERROR] CSV must contain 'Stock #' and 'Vehicle URL' (or equivalent). "
-              f"Found columns: {fieldnames}")
-        sys.exit(1)
-
-    # Add image URL columns if missing
-    image_cols = ["Main Image URL", "Image URL 2", "Image URL 3", "Image URL 4", "Image URL 5"]
-    for col in image_cols:
-        if col not in fieldnames:
-            fieldnames.append(col)
-
-    # Start Playwright
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context()
-        page = context.new_page()
-
-        total_rows = len(rows)
-        total_images = 0
-        for idx, row in enumerate(rows, start=1):
-            stock_id = row.get(stock_key, "").strip()
-            vdp_url = row.get(vehicle_url_key, "").strip()
-
-            print(f"\n[INFO] Processing {idx}/{total_rows} | Stock: {stock_id}")
-
-            # Default: clear image URL fields
-            for col in image_cols:
-                row[col] = ""
-
-            if not vdp_url:
-                print("  [!] No Vehicle URL; skipping.")
-                continue
-
+    def collect_from_dom():
+        nonlocal collected
+        imgs = page.query_selector_all("img")
+        for img in imgs:
             try:
-                image_urls = scrape_vehicle_images_from_page(page, vdp_url, max_images=max_images)
-            except PlaywrightTimeoutError:
-                print("  [!] Timeout loading page; skipping this vehicle.")
+                src = img.get_attribute("src")
+                if not src:
+                    continue
+
+                full = normalize(url, src)
+                if not is_real_image(full):
+                    continue
+
+                box = img.bounding_box() or {}
+                w = box.get("width", 0)
+                h = box.get("height", 0)
+
+                # Filter out small UI icons / thumbnails
+                if w < MIN_WIDTH or h < MIN_HEIGHT:
+                    continue
+
+                if full not in collected:
+                    collected.append(full)
+                    if len(collected) >= max_images:
+                        return
+            except Exception:
                 continue
-            except Exception as e:
-                print(f"  [!] Unexpected error while scraping page: {e}")
-                continue
 
-            if not image_urls:
-                print("  [!] No suitable images found for this vehicle.")
-                continue
+    # 1) Initial DOM pass
+    collect_from_dom()
+    if len(collected) >= max_images:
+        print(f"✅ Found {len(collected)} image(s) on initial pass.")
+        return collected[:max_images]
 
-            local_paths = []
-            for i, img_url in enumerate(image_urls, start=1):
-                if not stock_id:
-                    # Fallback: derive pseudo stock from VIN in URL if needed
-                    m = re.search(r"([A-HJ-NPR-Z0-9]{8,17})", vdp_url)
-                    fallback_stock = m.group(1) if m else f"veh_{idx}"
-                    stock_for_file = fallback_stock
-                else:
-                    stock_for_file = stock_id.replace("/", "_").replace(" ", "")
+    # 2) Scroll down a few times to trigger lazy loading
+    for _ in range(5):
+        page.mouse.wheel(0, 800)
+        page.wait_for_timeout(1200)
+        collect_from_dom()
+        if len(collected) >= max_images:
+            break
 
-                filename = f"{stock_for_file}_{i}.jpg"
-                dest_path = image_dir / filename
+    # 3) Scroll back up in case some galleries load above
+    page.evaluate("window.scrollTo(0, 0)")
+    page.wait_for_timeout(800)
+    collect_from_dom()
 
-                success = download_image(img_url, dest_path)
-                if success:
-                    # This is the URL path exposed by your frontend (e.g. /vehicles/P57801_1.jpg)
-                    public_path = f"/vehicles/{filename}"
-                    local_paths.append(public_path)
-                    total_images += 1
-
-            # Map to CSV columns
-            if local_paths:
-                row["Main Image URL"] = local_paths[0]
-                for i in range(1, min(len(local_paths), 5)):
-                    row[f"Image URL {i+1}"] = local_paths[i]
-
-            # Be nice, slow down a bit between vehicles
-            time.sleep(delay_between)
-
-        browser.close()
-
-    # Write enriched CSV
-    output_csv.parent.mkdir(parents=True, exist_ok=True)
-    with output_csv.open("w", newline="", encoding="utf-8") as f_out:
-        writer = csv.DictWriter(f_out, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(rows)
-
-    print(f"\n{'='*60}")
-    print(f"[DONE] Processed {total_rows} vehicles")
-    print(f"[DONE] Downloaded {total_images} images total")
-    print(f"[DONE] Enriched CSV written to: {output_csv}")
-    print(f"[DONE] Images stored under: {image_dir}")
-    print(f"{'='*60}")
+    if not collected:
+        print("⚠️ No qualifying images found after scrolling.")
+    else:
+        print(f"✅ Found {len(collected)} image(s).")
+    return collected[:max_images]
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Scrape GoodChev vehicle photos via Playwright and enrich inventory CSV."
+        description="Scrape GoodChev VDP photos and enrich inventory CSV for Choose Me Auto."
     )
+    parser.add_argument("--input-csv", required=True, help="Path to base inventory CSV")
     parser.add_argument(
-        "--input-csv",
-        required=True,
-        help="Path to input inventory CSV (must contain 'Stock #' and 'Vehicle URL' columns).",
-    )
-    parser.add_argument(
-        "--output-csv",
-        required=True,
-        help="Path to output enriched CSV.",
+        "--output-csv", required=True, help="Path to enriched CSV to write"
     )
     parser.add_argument(
         "--image-dir",
         required=True,
-        help="Directory to store downloaded images (e.g. frontend/public/vehicles).",
+        help="Directory (under frontend/public) where images will be saved",
     )
     parser.add_argument(
-        "--max-images",
-        type=int,
-        default=5,
-        help="Maximum number of images to download per vehicle (default: 5).",
+        "--max-images", type=int, default=5, help="Max images to save per vehicle"
     )
-    parser.add_argument(
-        "--delay-between",
-        type=float,
-        default=1.5,
-        help="Delay in seconds between vehicles (default: 1.5).",
-    )
-
     args = parser.parse_args()
 
     input_csv = Path(args.input_csv)
     output_csv = Path(args.output_csv)
-    image_dir = Path(args.image_dir)
+    img_dir = Path(args.image_dir)
 
-    enrich_inventory(
-        input_csv=input_csv,
-        output_csv=output_csv,
-        image_dir=image_dir,
-        max_images=args.max_images,
-        delay_between=args.delay_between,
-    )
+    # Load rows
+    with open(input_csv, encoding="utf-8-sig", newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    if not rows:
+        print("No rows found in input CSV.")
+        return
+
+    # Existing fieldnames
+    fieldnames = list(rows[0].keys())
+
+    # Enriched image fields
+    image_fields = ["Main Image URL"] + [f"Image URL {i}" for i in range(2, 6)]
+    for f_name in image_fields:
+        if f_name not in fieldnames:
+            fieldnames.append(f_name)
+
+    # Column detection
+    stock_col = next((c for c in rows[0].keys() if "stock" in c.lower()), "Stock #")
+    url_col = next((c for c in rows[0].keys() if "url" in c.lower()), "Vehicle URL")
+
+    print(f"Using stock column: {stock_col}")
+    print(f"Using VDP URL column: {url_col}")
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+
+        total = len(rows)
+        for i, row in enumerate(rows, start=1):
+            raw_stock = row.get(stock_col, "") or f"veh{i}"
+            stock = re.sub(r"[^A-Za-z0-9]", "", raw_stock) or f"veh{i}"
+            vdp = row.get(url_col)
+
+            print(f"\n➡️  [{i}/{total}] {stock}")
+
+            # Clear image fields for this row
+            for f_name in image_fields:
+                row[f_name] = ""
+
+            if not vdp:
+                print("❌ No VDP URL present; skipping vehicle.")
+                continue
+
+            imgs = scrape_images(page, vdp, args.max_images)
+            if not imgs:
+                print("⚠️ No images captured for this vehicle.")
+                continue
+
+            saved_urls = []
+            for idx, link in enumerate(imgs, start=1):
+                # We always save as .jpg (frontend expects JPEGs)
+                filename = f"{stock}_{idx}.jpg"
+                dest = img_dir / filename
+                ok = download(link, dest)
+                if ok:
+                    saved_urls.append(f"/vehicles/{filename}")
+
+            if saved_urls:
+                row["Main Image URL"] = saved_urls[0]
+                # Fill Image URL 2–5
+                for j in range(1, min(len(saved_urls), 5)):
+                    row[f"Image URL {j+1}"] = saved_urls[j]
+
+        browser.close()
+
+    # Write enriched CSV
+    with open(output_csv, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    print("\n✅ DONE!")
+    print(f"📁 Enriched CSV  → {output_csv}")
+    print(f"🖼 Photos saved  → {img_dir}")
 
 
 if __name__ == "__main__":

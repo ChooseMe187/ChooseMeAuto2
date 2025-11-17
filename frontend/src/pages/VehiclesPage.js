@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 
-const VehiclesPage = () => {
+const VehiclesPage = ({ initialFilters = {} }) => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -17,7 +17,9 @@ const VehiclesPage = () => {
     min_price: searchParams.get("min_price") || "",
     max_price: searchParams.get("max_price") || "",
     body_style: searchParams.get("body_style") || "",
+    condition: searchParams.get("condition") || "",
     sort: searchParams.get("sort") || "",
+    ...initialFilters,
   });
 
   useEffect(() => {
@@ -32,6 +34,7 @@ const VehiclesPage = () => {
         if (filters.min_price) qs.set("min_price", filters.min_price);
         if (filters.max_price) qs.set("max_price", filters.max_price);
         if (filters.body_style) qs.set("body_style", filters.body_style);
+        if (filters.condition) qs.set("condition", filters.condition);
 
         const url =
           `${API_BASE}/api/vehicles` +
@@ -58,6 +61,7 @@ const VehiclesPage = () => {
     if (filters.min_price) newParams.min_price = filters.min_price;
     if (filters.max_price) newParams.max_price = filters.max_price;
     if (filters.body_style) newParams.body_style = filters.body_style;
+    if (filters.condition) newParams.condition = filters.condition;
     if (filters.sort) newParams.sort = filters.sort;
     setSearchParams(newParams, { replace: true });
 
@@ -107,6 +111,7 @@ const VehiclesPage = () => {
       min_price: "",
       max_price: "",
       body_style: "",
+      condition: "",
       sort: "",
     });
     navigate("/vehicles");
@@ -127,6 +132,19 @@ const VehiclesPage = () => {
             </p>
           </div>
         </header>
+
+        {/* Condition filter indicator */}
+        {filters.condition && (
+          <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+            Showing <strong>{filters.condition}</strong> vehicles only.
+            <button
+              onClick={() => setFilters({ ...filters, condition: "" })}
+              className="ml-2 text-emerald-600 underline hover:text-emerald-700"
+            >
+              Clear filter
+            </button>
+          </div>
+        )}
 
         {/* Filter + Sort */}
         <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">

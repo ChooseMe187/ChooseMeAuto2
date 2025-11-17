@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
 from typing import Dict, List, Optional
+from datetime import datetime
 
 from models.vehicle import Vehicle
 
@@ -21,6 +22,8 @@ def load_inventory_from_csv(
     if not csv_path.exists():
         # You might want to log instead of raising in production
         raise FileNotFoundError(f"Inventory CSV not found at {csv_path}")
+
+    current_year = datetime.now().year
 
     with csv_path.open("r", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
@@ -49,11 +52,16 @@ def load_inventory_from_csv(
                 (row.get("Image URL 5") or "").strip(),
             ]
             extra_images = [u for u in extra_images_raw if u]
+            
+            # Parse year and compute condition
+            year = int((row.get("Year") or "0").strip() or 0)
+            # Consider vehicles from current year and last year as "New"
+            condition = "New" if year >= (current_year - 1) else "Used"
 
             vehicle = Vehicle(
                 stock_id=stock_raw,
                 vin=(row.get("VIN") or "").strip(),
-                year=int((row.get("Year") or "0").strip() or 0),
+                year=year,
                 make=(row.get("Make") or "").strip(),
                 model=(row.get("Model") or "").strip(),
                 trim=(row.get("Trim") or "").strip(),
@@ -63,6 +71,7 @@ def load_inventory_from_csv(
                 drivetrain=(row.get("Drivetrain") or "").strip() or None,
                 exterior_color=(row.get("Exterior Color") or "").strip() or None,
                 interior_color=(row.get("Interior Color") or "").strip() or None,
+                condition=condition,
                 image_url=main_image or None,
                 image_urls=extra_images,
             )

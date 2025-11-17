@@ -17,6 +17,9 @@ class Vehicle(BaseModel):
     drivetrain: Optional[str] = None
     exterior_color: Optional[str] = None
     interior_color: Optional[str] = None
+    
+    # Computed condition field (New vs Used)
+    condition: Optional[str] = None  # "New" or "Used"
 
     # Image fields
     image_url: Optional[str] = None      # Main Image URL

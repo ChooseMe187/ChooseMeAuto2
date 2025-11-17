@@ -1,19 +1,102 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import "../styles/home.css";
 
 const HomePage = () => {
   return (
-    <section style={{ padding: "2rem 0" }}>
-      <h1 style={{ fontSize: "2rem", marginBottom: "1rem" }}>Welcome to Choose Me Auto</h1>
-      <p style={{ marginBottom: "1rem", lineHeight: "1.6" }}>
-        We specialize in helping bad credit, no credit, and first-time buyers
-        get into the vehicles they deserve.
-      </p>
-      <p style={{ lineHeight: "1.6" }}>
-        Start with our <Link to="/preapproved" style={{ color: "#2563eb" }}>Pre-Approval</Link> or browse{" "}
-        <Link to="/vehicles" style={{ color: "#2563eb" }}>All Inventory</Link>.
-      </p>
-    </section>
+    <div className="cma-home">
+      {/* Hero Section */}
+      <section className="cma-hero">
+        <div className="cma-hero-inner">
+          {/* Left: Main CTA */}
+          <div className="cma-hero-left">
+            <div className="cma-hero-badge">
+              <span className="dot"></span>
+              <span>Approved in Minutes</span>
+            </div>
+
+            <h1 className="cma-hero-title">
+              Get the <span className="highlight">Car You Deserve</span>,
+              <br />
+              Regardless of Credit
+            </h1>
+
+            <p className="cma-hero-subtitle">
+              Bad credit? No credit? First-time buyer? No problem. We specialize in
+              helping everyone drive away happy.
+            </p>
+
+            <div className="cma-hero-ctas">
+              <Link to="/preapproved" className="btn-primary">
+                Get Pre-Approved in Minutes
+              </Link>
+              <Link to="/vehicles" className="btn-secondary">
+                Browse All Inventory
+              </Link>
+            </div>
+
+            <div className="cma-hero-meta">
+              <span>✓ Bad Credit OK</span>
+              <span>✓ No Credit OK</span>
+              <span>✓ First-Time Buyers Welcome</span>
+            </div>
+          </div>
+
+          {/* Right: Logo Card */}
+          <div className="cma-hero-right">
+            <div className="cma-hero-card">
+              <img
+                src="/chooseme-logo.png"
+                alt="Choose Me Auto"
+                className="cma-logo"
+              />
+              <p className="cma-hero-tagline">
+                Your trusted partner in auto financing
+              </p>
+
+              <div className="cma-hero-stats">
+                <div className="stat">
+                  <span className="stat-label">Vehicles</span>
+                  <span className="stat-value">112+</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-label">Approved</span>
+                  <span className="stat-value">98%</span>
+                </div>
+                <div className="stat">
+                  <span className="stat-label">Rating</span>
+                  <span className="stat-value">4.8★</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick Links */}
+      <section className="cma-quick-links">
+        <Link to="/used" className="quick-card">
+          <span className="quick-label">Shop Used Vehicles</span>
+          <span className="quick-desc">
+            Browse our selection of quality pre-owned cars, trucks, and SUVs
+          </span>
+        </Link>
+
+        <Link to="/new" className="quick-card">
+          <span className="quick-label">Shop New Vehicles</span>
+          <span className="quick-desc">
+            Explore the latest models with full manufacturer warranties
+          </span>
+        </Link>
+
+        <Link to="/test-drive" className="quick-card">
+          <span className="quick-label">Schedule Test Drive</span>
+          <span className="quick-desc">
+            Experience your dream vehicle in person — book online today
+          </span>
+        </Link>
+      </section>
+    </div>
   );
 };
 

@@ -30,8 +30,11 @@ function App() {
           <Route path="/vehicles" element={<VehiclesPage />} />
           <Route path="/vehicle/:stock_id" element={<VehicleDetailPage />} />
 
-          {/* Top nav tabs */}
-          <Route path="/used" element={<UsedVehiclesPage />} />
+          {/* Top nav tabs - using VehiclesPage with initialFilters */}
+          <Route 
+            path="/used" 
+            element={<VehiclesPage initialFilters={{ condition: "Used" }} />} 
+          />
           <Route path="/new" element={<NewVehiclesPage />} />
           <Route path="/preapproved" element={<PreApprovalPage />} />
           <Route path="/contact" element={<ContactPage />} />

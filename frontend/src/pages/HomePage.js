@@ -46,7 +46,7 @@ const HomePage = () => {
           <div className="cma-hero-right">
             <div className="cma-hero-card">
               <img
-                src="/chooseme-logo.png"
+                src="/chooseme-logo.svg"
                 alt="Choose Me Auto"
                 className="cma-logo"
               />

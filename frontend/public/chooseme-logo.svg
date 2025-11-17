@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="170" height="60" viewBox="0 0 170 60">
+  <rect width="170" height="60" fill="#1a1a2e" rx="8"/>
+  <text x="85" y="30" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#22c55e" text-anchor="middle">
+    Choose Me Auto
+  </text>
+  <text x="85" y="48" font-family="Arial, sans-serif" font-size="10" fill="#9ca3af" text-anchor="middle">
+    Your Credit Specialist
+  </text>
+</svg>

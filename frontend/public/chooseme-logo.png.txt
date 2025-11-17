@@ -1,0 +1,6 @@
+PLACEHOLDER: The user should replace this file with their actual logo image.
+The logo should be placed at: /app/frontend/public/chooseme-logo.png
+
+The image will appear in the hero section of the homepage.
+Recommended size: 170px wide (height will auto-adjust)
+Format: PNG with transparent background preferred

@@ -15,6 +15,7 @@ def get_vehicles(
     min_price: Optional[int] = Query(None),
     max_price: Optional[int] = Query(None),
     body_style: Optional[str] = Query(None),
+    condition: Optional[str] = Query(None),
 ):
     """
     List vehicles with simple filters for SRP.
@@ -23,6 +24,7 @@ def get_vehicles(
     - /api/vehicles
     - /api/vehicles?make=Chevrolet&min_price=10000&max_price=40000
     - /api/vehicles?body_style=SUV
+    - /api/vehicles?condition=Used
     """
     vehicles = _list_vehicles()
 
@@ -32,6 +34,8 @@ def get_vehicles(
         if model and v.model.lower() != model.lower():
             return False
         if body_style and (v.body_style or "").lower() != body_style.lower():
+            return False
+        if condition and (v.condition or "").lower() != condition.lower():
             return False
         if min_price is not None and (v.price or 0) < min_price:
             return False

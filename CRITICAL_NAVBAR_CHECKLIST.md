@@ -285,7 +285,7 @@ npm run build
 
 **4. Environment Variables:**
 ```
-REACT_APP_BACKEND_URL=https://dealer-inventory.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://cardealership-1.preview.emergentagent.com
 ```
 
 **5. Server Configuration:**
@@ -301,16 +301,16 @@ REACT_APP_BACKEND_URL=https://dealer-inventory.preview.emergentagent.com
 ### After Deployment, Test These URLs:
 
 ```
-1. https://dealer-inventory.preview.emergentagent.com/
+1. https://cardealership-1.preview.emergentagent.com/
    → Should show navbar at top + Home page
 
-2. https://dealer-inventory.preview.emergentagent.com/used
+2. https://cardealership-1.preview.emergentagent.com/used
    → Should show navbar + Used page
 
-3. https://dealer-inventory.preview.emergentagent.com/vehicles
+3. https://cardealership-1.preview.emergentagent.com/vehicles
    → Should show navbar + 112 vehicles
 
-4. https://dealer-inventory.preview.emergentagent.com/vehicle/P57801
+4. https://cardealership-1.preview.emergentagent.com/vehicle/P57801
    → Should show navbar + 2022 Malibu detail page
 ```
 
@@ -352,7 +352,7 @@ cat /app/frontend/build/index.html | grep "main"
 
 **4. Test Static Files:**
 ```
-https://dealer-inventory.preview.emergentagent.com/static/js/main.*.js
+https://cardealership-1.preview.emergentagent.com/static/js/main.*.js
 → Should return JavaScript file (not 404)
 ```
 

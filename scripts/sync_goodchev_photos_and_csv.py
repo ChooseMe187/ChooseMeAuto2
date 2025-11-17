@@ -1,189 +1,177 @@
 import csv
-import re
+import os
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
-# --- CONFIG ---
+# --- CONFIG ----
+BASE_DIR = Path(__file__).resolve().parent.parent  # /app
+DATA_DIR = BASE_DIR / "backend" / "data"
 
-# Input CSV: inventory file (must have "Stock #" and optionally "Vehicle URL")
-INPUT_CSV = Path("backend/data/goodchev_renton_inventory.csv")
+INPUT_CSV = DATA_DIR / "goodchev_renton_inventory_enriched.csv"
+OUTPUT_CSV = DATA_DIR / "goodchev_renton_inventory_enriched_new.csv"
 
-# Output CSV: enriched with Main Image URL + Image URL 2–5
-OUTPUT_CSV = Path("backend/data/goodchev_renton_inventory_enriched.csv")
+IMAGES_DIR = BASE_DIR / "frontend" / "public" / "vehicles"
+IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
-# Where vehicle images will be stored in the project
-# These are served as /vehicles/{filename}
-PUBLIC_VEHICLES_DIR = Path("frontend/public/vehicles")
-
-# Max images per vehicle to pull
 MAX_IMAGES_PER_VEHICLE = 5
 
-
-def clean_stock(stock: str) -> str:
-    """Clean stock number for use in filenames"""
-    return (stock or "").strip().replace(" ", "").replace("#", "")
-
-
-def ensure_public_dir():
-    """Create vehicles directory if it doesn't exist"""
-    PUBLIC_VEHICLES_DIR.mkdir(parents=True, exist_ok=True)
+# Some substrings we DON'T want (logos, icons, etc.)
+BLOCKLIST_SUBSTRINGS = [
+    "logo", "icon", "favicon", "spinner", "placeholder", "certified", "carfax"
+]
 
 
-def fetch_page(url: str) -> str:
-    """Fetch HTML content from URL"""
-    resp = requests.get(url, timeout=20)
-    resp.raise_for_status()
-    return resp.text
+def is_valid_vehicle_image(src: str) -> bool:
+    if not src:
+        return False
+    lower = src.lower()
+    if lower.startswith("data:"):
+        return False
+    for bad in BLOCKLIST_SUBSTRINGS:
+        if bad in lower:
+            return False
+    # Most dealer photos are jpg/jpeg/png
+    return any(lower.endswith(ext) for ext in [".jpg", ".jpeg", ".png", ".webp"])
 
 
-def find_gallery_image_urls(html: str):
-    """
-    Find vehicle photos on GoodChev VDP page.
-    Filter out obvious logos/icons.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    urls = []
+def extract_image_urls(vehicle_url: str) -> list:
+    """Fetch VDP page and return up to MAX_IMAGES_PER_VEHICLE image URLs."""
+    try:
+        resp = requests.get(vehicle_url, timeout=15)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[WARN] Failed to fetch {vehicle_url}: {e}")
+        return []
 
-    for img in soup.find_all("img"):
-        src = img.get("src") or ""
-        if not src.startswith("http"):
-            continue
+    soup = BeautifulSoup(resp.text, "html.parser")
 
-        alt = (img.get("alt") or "").lower()
+    candidates = []
 
-        # Skip logos/icons
-        if "logo" in alt or "icon" in alt:
-            continue
+    # 1) img[data-src]
+    for img in soup.select("img[data-src]"):
+        src = img.get("data-src")
+        if is_valid_vehicle_image(src):
+            candidates.append(src)
 
-        urls.append(src)
+    # 2) img[src]
+    for img in soup.select("img[src]"):
+        src = img.get("src")
+        if is_valid_vehicle_image(src):
+            candidates.append(src)
 
-    # Deduplicate while preserving order
+    # Make URLs absolute
+    abs_urls = []
+    for src in candidates:
+        abs_urls.append(urljoin(vehicle_url, src))
+
+    # Remove duplicates while keeping order
     seen = set()
-    unique_urls = []
-    for u in urls:
-        if u not in seen:
-            seen.add(u)
-            unique_urls.append(u)
-    return unique_urls
+    unique = []
+    for url in abs_urls:
+        if url not in seen:
+            seen.add(url)
+            unique.append(url)
+
+    return unique[:MAX_IMAGES_PER_VEHICLE]
 
 
 def download_image(url: str, dest_path: Path):
-    """Download image from URL to local path"""
     try:
-        resp = requests.get(url, timeout=20)
-        resp.raise_for_status()
-        dest_path.write_bytes(resp.content)
-        print(f"  ✅ Saved {dest_path}")
+        r = requests.get(url, stream=True, timeout=20)
+        r.raise_for_status()
+        with open(dest_path, "wb") as f:
+            for chunk in r.iter_content(8192):
+                f.write(chunk)
+        file_size = dest_path.stat().st_size
+        print(f"[OK] Saved {dest_path.name} ({file_size:,} bytes)")
     except Exception as e:
-        print(f"  ❌ Failed to download {url}: {e}")
+        print(f"[WARN] Failed to download {url}: {e}")
 
 
 def main():
-    ensure_public_dir()
-
     if not INPUT_CSV.exists():
-        print(f"❌ Input CSV not found at {INPUT_CSV}")
-        return
+        raise SystemExit(f"Input CSV not found: {INPUT_CSV}")
 
-    with INPUT_CSV.open("r", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
+    print(f"Starting GoodChev photo scraper...")
+    print(f"Input CSV: {INPUT_CSV}")
+    print(f"Output CSV: {OUTPUT_CSV}")
+    print(f"Images directory: {IMAGES_DIR}")
+    print("-" * 60)
+
+    with INPUT_CSV.open(newline="", encoding="utf-8-sig") as f_in, \
+         OUTPUT_CSV.open("w", newline="", encoding="utf-8") as f_out:
+
+        reader = csv.DictReader(f_in)
         fieldnames = list(reader.fieldnames or [])
 
-        # Ensure image URL columns exist in output
-        for col in [
-            "Main Image URL",
-            "Image URL 2",
-            "Image URL 3",
-            "Image URL 4",
-            "Image URL 5",
-        ]:
+        # Ensure our new columns exist
+        for col in ["Main Image URL", "Image URL 2", "Image URL 3", "Image URL 4", "Image URL 5"]:
             if col not in fieldnames:
                 fieldnames.append(col)
 
-        rows_out = []
-
-        for row in reader:
-            stock_raw = row.get("Stock #") or row.get("Stock") or row.get("stock_id")
-            vehicle_url = row.get("Vehicle URL") or row.get("vehicle_url") or row.get("Source URL")
-
-            stock_id = clean_stock(stock_raw)
-
-            # Default empty image columns
-            row["Main Image URL"] = ""
-            row["Image URL 2"] = ""
-            row["Image URL 3"] = ""
-            row["Image URL 4"] = ""
-            row["Image URL 5"] = ""
-
-            if not stock_id:
-                print(f"\n⚠️  Skipping row without stock number")
-                rows_out.append(row)
-                continue
-
-            if not vehicle_url:
-                print(f"\n⚠️  {stock_id}: No Vehicle URL found (column 'Vehicle URL' or 'Source URL' not present)")
-                rows_out.append(row)
-                continue
-
-            print(f"\n=== {stock_id} ===")
-            print(f"Fetching page: {vehicle_url}")
-
-            try:
-                html = fetch_page(vehicle_url)
-            except Exception as e:
-                print(f"  ❌ Failed to fetch page: {e}")
-                rows_out.append(row)
-                continue
-
-            image_urls = find_gallery_image_urls(html)
-            if not image_urls:
-                print("  ⚠️  No vehicle images found on page.")
-                rows_out.append(row)
-                continue
-
-            local_rel_urls = []
-            for idx, img_url in enumerate(image_urls[:MAX_IMAGES_PER_VEHICLE], start=1):
-                # Determine extension
-                ext = ".jpg"
-                m = re.search(r"\.(jpg|jpeg|png|webp)(\?|$)", img_url, re.IGNORECASE)
-                if m:
-                    ext = "." + m.group(1).lower()
-
-                filename = f"{stock_id}_{idx}{ext}"
-                dest = PUBLIC_VEHICLES_DIR / filename
-                download_image(img_url, dest)
-
-                # Public-facing URL for frontend
-                local_rel_urls.append(f"/vehicles/{filename}")
-
-            # Map local_rel_urls into CSV columns
-            if local_rel_urls:
-                row["Main Image URL"] = local_rel_urls[0]
-            if len(local_rel_urls) > 1:
-                row["Image URL 2"] = local_rel_urls[1]
-            if len(local_rel_urls) > 2:
-                row["Image URL 3"] = local_rel_urls[2]
-            if len(local_rel_urls) > 3:
-                row["Image URL 4"] = local_rel_urls[3]
-            if len(local_rel_urls) > 4:
-                row["Image URL 5"] = local_rel_urls[4]
-
-            rows_out.append(row)
-
-    # Write enriched CSV
-    with OUTPUT_CSV.open("w", encoding="utf-8", newline="") as f_out:
         writer = csv.DictWriter(f_out, fieldnames=fieldnames)
         writer.writeheader()
-        writer.writerows(rows_out)
 
-    print(f"\n✅ Enriched CSV written to: {OUTPUT_CSV}")
-    print(f"✅ Images stored in: {PUBLIC_VEHICLES_DIR}")
-    print(f"\n📊 Summary:")
-    print(f"   Total vehicles processed: {len(rows_out)}")
-    images_downloaded = sum(1 for r in rows_out if r.get("Main Image URL"))
-    print(f"   Vehicles with images: {images_downloaded}")
+        total_vehicles = 0
+        total_images = 0
+        total_skipped = 0
+
+        for row in reader:
+            total_vehicles += 1
+            stock = (row.get("Stock #") or row.get("Stock") or "").strip()
+            vehicle_url = (row.get("Vehicle URL") or "").strip()
+
+            if not stock or not vehicle_url:
+                print(f"[SKIP] Missing stock or Vehicle URL for row: {row.get('Year')} {row.get('Make')} {row.get('Model')}")
+                total_skipped += 1
+                writer.writerow(row)
+                continue
+
+            print(f"\n[{total_vehicles}] Stock {stock}")
+            print(f"     URL: {vehicle_url}")
+
+            image_urls = extract_image_urls(vehicle_url)
+
+            if not image_urls:
+                print(f"[WARN] No images found for stock {stock}")
+                total_skipped += 1
+                writer.writerow(row)
+                continue
+
+            print(f"     Found {len(image_urls)} images")
+
+            local_urls = []
+            for idx, img_url in enumerate(image_urls, start=1):
+                filename = f"{stock}_{idx}.jpg"
+                dest_path = IMAGES_DIR / filename
+                download_image(img_url, dest_path)
+                local_urls.append(f"/vehicles/{filename}")
+                total_images += 1
+
+            # Map into CSV columns
+            row["Main Image URL"] = local_urls[0] if len(local_urls) > 0 else ""
+            row["Image URL 2"] = local_urls[1] if len(local_urls) > 1 else ""
+            row["Image URL 3"] = local_urls[2] if len(local_urls) > 2 else ""
+            row["Image URL 4"] = local_urls[3] if len(local_urls) > 3 else ""
+            row["Image URL 5"] = local_urls[4] if len(local_urls) > 4 else ""
+
+            writer.writerow(row)
+
+    print("\n" + "=" * 60)
+    print(f"[DONE] Processed {total_vehicles} vehicles")
+    print(f"[DONE] Downloaded {total_images} images")
+    print(f"[DONE] Skipped {total_skipped} vehicles (no URL or no images)")
+    print(f"[DONE] Enriched CSV written to: {OUTPUT_CSV}")
+    print(f"[DONE] Images saved under: {IMAGES_DIR}")
+    print("=" * 60)
+    print("\nNext steps:")
+    print(f"1. Review the output CSV and images")
+    print(f"2. If looks good, replace the original CSV:")
+    print(f"   mv {OUTPUT_CSV} {INPUT_CSV}")
+    print(f"3. Restart backend: sudo supervisorctl restart backend")
 
 
 if __name__ == "__main__":

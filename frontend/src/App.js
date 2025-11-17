@@ -40,6 +40,10 @@ function App() {
           <Route path="/preapproved" element={<PreApprovalPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/test-drive" element={<TestDrivePage />} />
+          
+          {/* Thank you pages */}
+          <Route path="/thank-you" element={<ThankYouPage />} />
+          <Route path="/preapproved/thanks" element={<ThankYouPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<HomePage />} />

@@ -16,6 +16,7 @@ import NewVehiclesPage from "./pages/NewVehiclesPage";
 import PreApprovalPage from "./pages/PreApprovalPage";
 import ContactPage from "./pages/ContactPage";
 import TestDrivePage from "./pages/TestDrivePage";
+import ThankYouPage from "./pages/ThankYouPage";
 
 function App() {
   return (

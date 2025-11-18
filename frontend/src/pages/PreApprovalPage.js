@@ -68,27 +68,27 @@ const PreApprovalPage = () => {
           <form onSubmit={handleSubmit}>
             <div className="cma-field-grid">
               <div className="cma-field-group">
-                <label>First Name</label>
+                <label>First Name | Nombre</label>
                 <input name="firstName" type="text" required />
               </div>
               <div className="cma-field-group">
-                <label>Last Name</label>
+                <label>Last Name | Apellido</label>
                 <input name="lastName" type="text" required />
               </div>
             </div>
 
             <div className="cma-field-group">
-              <label>Phone Number</label>
+              <label>Phone Number | Teléfono</label>
               <input name="phone" type="tel" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Email Address</label>
+              <label>Email Address | Correo Electrónico</label>
               <input name="email" type="email" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Stock Number (Vehicle You're Interested In)</label>
+              <label>Stock Number (Vehicle You're Interested In) | Número de Inventario (si ya tienes un auto en mente)</label>
               <input
                 name="stockNumber"
                 type="text"

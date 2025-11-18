@@ -48,10 +48,17 @@ const PreApprovalPage = () => {
     <div className="cma-page cma-form-page">
       <div className="cma-page-header">
         <h1>Get Pre-Approved with Choose Me Auto</h1>
+        <h2 style={{ fontSize: "1.5rem", marginTop: "0.5rem", opacity: 0.9 }}>
+          Obtén tu Preaprobación con Choose Me Auto
+        </h2>
         <p>
           Step 1: Tell us how to reach you. Step 2: Complete the secure bank
           application. We'll help you every step of the way&mdash;even with bad
           credit, no credit, or first-time buying.
+        </p>
+        <p style={{ fontSize: "0.9rem", marginTop: "0.5rem", opacity: 0.85 }}>
+          Paso 1: Danos tu información de contacto. Paso 2: Completa la solicitud segura del banco.
+          Te ayudaremos en cada paso&mdash;incluso con crédito malo, sin crédito, o si compras por primera vez.
         </p>
       </div>
 

@@ -43,9 +43,9 @@ const HomePage = () => {
             </div>
 
             <div className="cma-hero-meta">
-              <span>✓ Bad Credit OK</span>
-              <span>✓ No Credit OK</span>
-              <span>✓ First-Time Buyers Welcome</span>
+              <span>✓ Bad Credit OK | Crédito Malo OK</span>
+              <span>✓ No Credit OK | Sin Crédito OK</span>
+              <span>✓ First-Time Buyers | Compradores por Primera Vez</span>
             </div>
           </div>
 

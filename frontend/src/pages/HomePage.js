@@ -12,7 +12,7 @@ const HomePage = () => {
           <div className="cma-hero-left">
             <div className="cma-hero-badge">
               <span className="dot"></span>
-              <span>Approved in Minutes</span>
+              <span>Approved in Minutes | Aprobación en Minutos</span>
             </div>
 
             <h1 className="cma-hero-title">
@@ -20,10 +20,17 @@ const HomePage = () => {
               <br />
               Regardless of Credit
             </h1>
+            <h2 className="cma-hero-title-es" style={{ fontSize: "1.5rem", marginTop: "0.5rem", opacity: 0.9 }}>
+              Obtén el auto que mereces, sin importar tu historial de crédito
+            </h2>
 
             <p className="cma-hero-subtitle">
               Bad credit? No credit? First-time buyer? No problem. We specialize in
               helping everyone drive away happy.
+            </p>
+            <p className="cma-hero-subtitle-es" style={{ fontSize: "0.9rem", marginTop: "0.5rem", opacity: 0.85 }}>
+              ¿Crédito malo? ¿Sin crédito? ¿Primera vez comprando? No hay problema.
+              Nos especializamos en ayudar a todos a irse felices con su auto.
             </p>
 
             <div className="cma-hero-ctas">

@@ -101,13 +101,16 @@ const PreApprovalPage = () => {
               className="cma-btn cma-btn-primary cma-btn-full"
               disabled={submitting}
             >
-              {submitting ? "Submitting..." : "Submit Info First"}
+              {submitting ? "Submitting... | Enviando..." : "Submit Info | Enviar Información"}
             </button>
 
             {submitted && (
               <p className="cma-success-text">
-                Thank you! We've received your info. Next, complete the secure
+                <strong>Thank you! We've received your info.</strong> Next, complete the secure
                 pre-approval application so we can lock in terms for you.
+                <br /><br />
+                <strong>¡Gracias! Hemos recibido tu información.</strong> Ahora completa la solicitud
+                segura de preaprobación para que podamos asegurar tus términos.
               </p>
             )}
           </form>

@@ -134,15 +134,18 @@ frontend:
 
   - task: "Add Bad Credit OK / No Credit OK badges in navbar (desktop)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/NavBar.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added pill-style badges with deep blue gradient background and white text. Badges appear near the Get Pre-Approved CTA button."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Desktop navbar shows 2 pill-style badges with correct text '✓ Bad Credit OK' and '✓ No Credit OK', dark blue gradient background, white text, and hover effects working - P1 requirement met"
 
   - task: "Add Bad Credit OK / No Credit OK badges in navbar (mobile)"
     implemented: true

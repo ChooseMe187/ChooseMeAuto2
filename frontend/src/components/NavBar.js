@@ -24,7 +24,7 @@ const NavBar = () => {
         <div className="cma-navbar-brand">
           <Link to="/" onClick={closeMenu} className="cma-logo-link">
             <span className="cma-logo-main">Choose Me Auto</span>
-            <span className="cma-logo-sub">Bad Credit • No Credit • First-Time</span>
+            <span className="cma-logo-sub">Your Trusted Car Dealership</span>
           </Link>
         </div>
 
@@ -42,21 +42,34 @@ const NavBar = () => {
               {link.label}
             </NavLink>
           ))}
+          
+          {/* Credit OK Badges */}
+          <div className="cma-credit-badges">
+            <span className="cma-credit-badge">✓ Bad Credit OK</span>
+            <span className="cma-credit-badge">✓ No Credit OK</span>
+          </div>
+          
           <Link to="/preapproved" className="cma-cta-btn">
             Get Pre-Approved
           </Link>
         </nav>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="cma-burger-btn"
-          onClick={toggleMenu}
-          aria-label="Toggle navigation"
-        >
-          <span className="cma-burger-line" />
-          <span className="cma-burger-line" />
-          <span className="cma-burger-line" />
-        </button>
+        {/* Mobile: Credit Badges + Menu Button */}
+        <div className="cma-mobile-right">
+          <div className="cma-credit-badges-mobile">
+            <span className="cma-credit-badge-mobile">✓ Bad Credit OK</span>
+            <span className="cma-credit-badge-mobile">✓ No Credit OK</span>
+          </div>
+          <button
+            className="cma-burger-btn"
+            onClick={toggleMenu}
+            aria-label="Toggle navigation"
+          >
+            <span className="cma-burger-line" />
+            <span className="cma-burger-line" />
+            <span className="cma-burger-line" />
+          </button>
+        </div>
       </div>
 
       {/* Mobile Nav Panel */}

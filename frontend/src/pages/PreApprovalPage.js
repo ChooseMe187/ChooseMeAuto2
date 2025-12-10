@@ -118,6 +118,15 @@ const PreApprovalPage = () => {
 
         {/* RIGHT: "Step 2" + GoodChev Link + Contact */}
         <div className="cma-card cma-side-card">
+          {/* Credit OK Banner */}
+          <div className="cma-credit-banner">
+            <span>✓ Bad Credit OK</span>
+            <span>·</span>
+            <span>✓ No Credit OK</span>
+            <span>·</span>
+            <span>✓ First-Time Buyers Welcome</span>
+          </div>
+          
           <h2>Step 2: Complete the Secure Bank Application</h2>
           <p>
             After you submit your info, click below to finish the official

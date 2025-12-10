@@ -199,12 +199,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Remove Emergent branding from page title"
-    - "Remove Emergent badge from bottom right corner"
-    - "Add Bad Credit OK / No Credit OK badges in navbar (desktop)"
-    - "Add Bad Credit OK / No Credit OK badges in navbar (mobile)"
-    - "2023 Honda Accord displays correctly on /vehicles page"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"

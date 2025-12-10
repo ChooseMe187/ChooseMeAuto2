@@ -164,15 +164,18 @@ frontend:
 
   - task: "Add credit banner on Pre-Approval page"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/PreApprovalPage.js"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added 'Bad Credit OK · No Credit OK · First-Time Buyers Welcome' banner in the side card above Step 2"
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Pre-approval page shows credit banner with correct text '✓ Bad Credit OK·✓ No Credit OK·✓ First-Time Buyers Welcome' in right side card - P1 requirement met"
 
   - task: "2023 Honda Accord displays correctly on /vehicles page"
     implemented: true

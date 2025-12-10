@@ -149,15 +149,18 @@ frontend:
 
   - task: "Add Bad Credit OK / No Credit OK badges in navbar (mobile)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/NavBar.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added stacked mobile badges next to burger menu. Smaller font size for mobile."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Mobile navbar (390x844) shows 2 stacked badges with correct text '✓ Bad Credit OK' and '✓ No Credit OK' next to hamburger menu - P1 requirement met"
 
   - task: "Add credit banner on Pre-Approval page"
     implemented: true

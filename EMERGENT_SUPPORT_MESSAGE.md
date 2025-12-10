@@ -3,7 +3,7 @@
 **Subject:** Vehicles not displaying on preview – API & static files verification needed
 
 **App:** Choose Me Auto – Dealer Inventory  
-**Preview URL:** https://cardealership-1.preview.emergentagent.com/
+**Preview URL:** https://autoleads-1.preview.emergentagent.com/
 
 ---
 
@@ -41,8 +41,8 @@ The vehicle inventory system is fully implemented and **working perfectly locall
 Please verify these endpoints are reachable:
 
 ```bash
-curl https://cardealership-1.preview.emergentagent.com/api/vehicles
-curl https://cardealership-1.preview.emergentagent.com/api/vehicles/P57801
+curl https://autoleads-1.preview.emergentagent.com/api/vehicles
+curl https://autoleads-1.preview.emergentagent.com/api/vehicles/P57801
 ```
 
 **Expected:** JSON response with 112 vehicles, each having `image_url` and `image_urls` fields.
@@ -56,8 +56,8 @@ curl https://cardealership-1.preview.emergentagent.com/api/vehicles/P57801
 Please verify these image URLs work:
 
 ```bash
-curl -I https://cardealership-1.preview.emergentagent.com/vehicles/P57801_1.jpg
-curl -I https://cardealership-1.preview.emergentagent.com/vehicles/210296B_1.jpg
+curl -I https://autoleads-1.preview.emergentagent.com/vehicles/P57801_1.jpg
+curl -I https://autoleads-1.preview.emergentagent.com/vehicles/210296B_1.jpg
 ```
 
 **Expected:** HTTP 200 OK with Content-Type: image/jpeg
@@ -99,10 +99,10 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 
 **Environment Variable:**
 ```
-REACT_APP_BACKEND_URL=https://cardealership-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://autoleads-1.preview.emergentagent.com
 ```
 
-**Result:** API calls go to `https://cardealership-1.preview.emergentagent.com/api/vehicles` (NOT localhost)
+**Result:** API calls go to `https://autoleads-1.preview.emergentagent.com/api/vehicles` (NOT localhost)
 
 ---
 
@@ -112,13 +112,13 @@ To diagnose the issue, open browser DevTools on the preview URL and run:
 
 ```javascript
 // Test API
-fetch('https://cardealership-1.preview.emergentagent.com/api/vehicles')
+fetch('https://autoleads-1.preview.emergentagent.com/api/vehicles')
   .then(r => r.json())
   .then(data => console.log('✅ API works! Vehicles:', data.length))
   .catch(err => console.error('❌ API failed:', err));
 
 // Test image
-fetch('https://cardealership-1.preview.emergentagent.com/vehicles/P57801_1.jpg')
+fetch('https://autoleads-1.preview.emergentagent.com/vehicles/P57801_1.jpg')
   .then(r => console.log('✅ Image works!', r.status))
   .catch(err => console.error('❌ Image failed:', err));
 ```
@@ -131,16 +131,16 @@ Check the Network tab for any failed requests or CORS errors.
 
 When correctly configured:
 
-1. **GET** `https://cardealership-1.preview.emergentagent.com/api/vehicles`  
+1. **GET** `https://autoleads-1.preview.emergentagent.com/api/vehicles`  
    → Returns JSON array of 112 vehicles
 
-2. **GET** `https://cardealership-1.preview.emergentagent.com/vehicles/P57801_1.jpg`  
+2. **GET** `https://autoleads-1.preview.emergentagent.com/vehicles/P57801_1.jpg`  
    → Returns JPEG image
 
-3. **Page** `https://cardealership-1.preview.emergentagent.com/vehicles`  
+3. **Page** `https://autoleads-1.preview.emergentagent.com/vehicles`  
    → Displays 112 vehicle cards with real photos
 
-4. **Page** `https://cardealership-1.preview.emergentagent.com/vehicle/P57801`  
+4. **Page** `https://autoleads-1.preview.emergentagent.com/vehicle/P57801`  
    → Shows 2022 Malibu with image gallery (5 photos)
 
 ---

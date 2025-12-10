@@ -60,16 +60,16 @@ All new page components are in:
 
 Please test these URLs on the preview:
 
-1. https://cardealership-1.preview.emergentagent.com/
+1. https://autoleads-1.preview.emergentagent.com/
    → Should show Home page with navigation bar at top
 
-2. https://cardealership-1.preview.emergentagent.com/used
+2. https://autoleads-1.preview.emergentagent.com/used
    → Should show Used Vehicles page
 
-3. https://cardealership-1.preview.emergentagent.com/preapproved
+3. https://autoleads-1.preview.emergentagent.com/preapproved
    → Should show Pre-Approval page
 
-4. https://cardealership-1.preview.emergentagent.com/vehicles
+4. https://autoleads-1.preview.emergentagent.com/vehicles
    → Should show full inventory (112 vehicles with photos)
 
 Expected Results:

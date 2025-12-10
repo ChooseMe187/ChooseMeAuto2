@@ -4,7 +4,7 @@
 
 ### Step 1: Run Browser Test (2 minutes)
 
-1. **Open preview URL:** https://cardealership-1.preview.emergentagent.com/
+1. **Open preview URL:** https://autoleads-1.preview.emergentagent.com/
 2. **Open DevTools:** Right-click → Inspect (or F12)
 3. **Go to Console tab**
 4. **Copy and paste this script:** `/app/BROWSER_DIAGNOSTIC_SCRIPT.js`
@@ -87,7 +87,7 @@
 ### Test 1: API Endpoint (in browser console)
 
 ```javascript
-fetch('https://cardealership-1.preview.emergentagent.com/api/vehicles')
+fetch('https://autoleads-1.preview.emergentagent.com/api/vehicles')
   .then(r => r.json())
   .then(d => console.log('✅ Works! Vehicles:', d.length))
   .catch(e => console.error('❌ Failed:', e));
@@ -96,7 +96,7 @@ fetch('https://cardealership-1.preview.emergentagent.com/api/vehicles')
 ### Test 2: Image Loading (in browser console)
 
 ```javascript
-fetch('https://cardealership-1.preview.emergentagent.com/vehicles/P57801_1.jpg')
+fetch('https://autoleads-1.preview.emergentagent.com/vehicles/P57801_1.jpg')
   .then(r => console.log('✅ Image works!', r.status))
   .catch(e => console.error('❌ Image failed:', e));
 ```

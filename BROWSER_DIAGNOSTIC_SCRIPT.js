@@ -3,7 +3,7 @@
 // ========================================
 // 
 // INSTRUCTIONS:
-// 1. Open https://cardealership-1.preview.emergentagent.com/
+// 1. Open https://autoleads-1.preview.emergentagent.com/
 // 2. Right-click → Inspect → Console tab
 // 3. Copy and paste this entire script
 // 4. Press Enter to run

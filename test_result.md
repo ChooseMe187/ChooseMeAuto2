@@ -69,6 +69,129 @@
 #    - Update the `test_plan` section to guide testing priorities
 #    - Add a message to `agent_communication` explaining what you've done
 #
+
+
+user_problem_statement: "Remove all Emergent branding from Choose Me Auto website and add Bad Credit OK / No Credit OK badges to navigation"
+
+backend:
+  - task: "Vehicle API returns 2023 Honda Accord"
+    implemented: true
+    working: true
+    file: "/app/backend/data/goodchev_renton_inventory_enriched.csv"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Verified via curl - API returns 113 vehicles including 2023 Honda Accord"
+
+frontend:
+  - task: "Remove Emergent branding from page title"
+    implemented: true
+    working: true
+    file: "/app/frontend/public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Changed title from 'Emergent | Fullstack App' to 'Choose Me Auto | Bad Credit OK, No Credit OK'. Verified via curl."
+
+  - task: "Remove Emergent branding from meta description"
+    implemented: true
+    working: true
+    file: "/app/frontend/public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Changed meta description from 'A product of emergent.sh' to 'Choose Me Auto - Your trusted car dealership. Bad Credit OK, No Credit OK, First-Time Buyers Welcome.'"
+
+  - task: "Remove Emergent badge from bottom right corner"
+    implemented: true
+    working: true
+    file: "/app/frontend/public/index.html"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Removed entire 'Made with Emergent' badge element. Verified via curl - grep found no emergent-badge or 'Made with Emergent'"
+
+  - task: "Add Bad Credit OK / No Credit OK badges in navbar (desktop)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/NavBar.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added pill-style badges with deep blue gradient background and white text. Badges appear near the Get Pre-Approved CTA button."
+
+  - task: "Add Bad Credit OK / No Credit OK badges in navbar (mobile)"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/components/NavBar.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added stacked mobile badges next to burger menu. Smaller font size for mobile."
+
+  - task: "Add credit banner on Pre-Approval page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PreApprovalPage.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Bad Credit OK · No Credit OK · First-Time Buyers Welcome' banner in the side card above Step 2"
+
+  - task: "2023 Honda Accord displays correctly on /vehicles page"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/VehiclesPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Vehicle was added to CSV by previous agent, needs frontend verification"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Remove Emergent branding from page title"
+    - "Remove Emergent badge from bottom right corner"
+    - "Add Bad Credit OK / No Credit OK badges in navbar (desktop)"
+    - "Add Bad Credit OK / No Credit OK badges in navbar (mobile)"
+    - "2023 Honda Accord displays correctly on /vehicles page"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Implemented P0 (remove Emergent branding) and P1 (add credit badges). Need UI verification for: 1) Browser tab title shows 'Choose Me Auto', 2) No 'Made with Emergent' badge visible in bottom right, 3) Navbar shows two pill badges '✓ Bad Credit OK' and '✓ No Credit OK' on desktop, 4) Mobile view shows stacked badges, 5) /vehicles page shows 2023 Honda Accord card, 6) Pre-Approval page shows credit banner"
+
 # 2. Incorporate User Feedback:
 #    - When a user provides feedback that something is or isn't working, add this information to the relevant task's status_history
 #    - Update the working status based on user feedback

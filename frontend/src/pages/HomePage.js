@@ -1,8 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
+import { homeCopy } from "../i18n/home";
 import "../styles/home.css";
 
 const HomePage = () => {
+  const { lang } = useLanguage();
+
   return (
     <div className="cma-home">
       {/* Hero Section */}
@@ -12,40 +16,32 @@ const HomePage = () => {
           <div className="cma-hero-left">
             <div className="cma-hero-badge">
               <span className="dot"></span>
-              <span>Approved in Minutes | Aprobación en Minutos</span>
+              <span>{homeCopy.heroBadge[lang]}</span>
             </div>
 
             <h1 className="cma-hero-title">
-              Get the <span className="highlight">Car You Deserve</span>,
+              {homeCopy.heroTitle[lang]}
               <br />
-              Regardless of Credit
+              <span className="highlight">{homeCopy.heroTitleHighlight[lang]}</span>
             </h1>
-            <h2 className="cma-hero-title-es" style={{ fontSize: "1.5rem", marginTop: "0.5rem", opacity: 0.9 }}>
-              Obtén el auto que mereces, sin importar tu historial de crédito
-            </h2>
 
             <p className="cma-hero-subtitle">
-              Bad credit? No credit? First-time buyer? No problem. We specialize in
-              helping everyone drive away happy.
-            </p>
-            <p className="cma-hero-subtitle-es" style={{ fontSize: "0.9rem", marginTop: "0.5rem", opacity: 0.85 }}>
-              ¿Crédito malo? ¿Sin crédito? ¿Primera vez comprando? No hay problema.
-              Nos especializamos en ayudar a todos a irse felices con su auto.
+              {homeCopy.heroSubtitle[lang]}
             </p>
 
             <div className="cma-hero-ctas">
               <Link to="/preapproved" className="btn-primary">
-                Get Pre-Approved in Minutes
+                {homeCopy.ctaPrimary[lang]}
               </Link>
               <Link to="/vehicles" className="btn-secondary">
-                Browse All Inventory
+                {homeCopy.ctaSecondary[lang]}
               </Link>
             </div>
 
             <div className="cma-hero-meta">
-              <span>✓ Bad Credit OK | Crédito Malo OK</span>
-              <span>✓ No Credit OK | Sin Crédito OK</span>
-              <span>✓ First-Time Buyers | Compradores por Primera Vez</span>
+              <span>✓ {homeCopy.badgeBadCredit[lang]}</span>
+              <span>✓ {homeCopy.badgeNoCredit[lang]}</span>
+              <span>✓ {homeCopy.badgeFirstTime[lang]}</span>
             </div>
           </div>
 
@@ -58,20 +54,20 @@ const HomePage = () => {
                 className="cma-logo"
               />
               <p className="cma-hero-tagline">
-                Your trusted partner in auto financing
+                {homeCopy.tagline[lang]}
               </p>
 
               <div className="cma-hero-stats">
                 <div className="stat">
-                  <span className="stat-label">Vehicles</span>
+                  <span className="stat-label">{homeCopy.statsVehicles[lang]}</span>
                   <span className="stat-value">112+</span>
                 </div>
                 <div className="stat">
-                  <span className="stat-label">Approved</span>
+                  <span className="stat-label">{homeCopy.statsApproved[lang]}</span>
                   <span className="stat-value">98%</span>
                 </div>
                 <div className="stat">
-                  <span className="stat-label">Rating</span>
+                  <span className="stat-label">{homeCopy.statsRating[lang]}</span>
                   <span className="stat-value">4.8★</span>
                 </div>
               </div>
@@ -83,23 +79,23 @@ const HomePage = () => {
       {/* Quick Links */}
       <section className="cma-quick-links">
         <Link to="/used" className="quick-card">
-          <span className="quick-label">Shop Used Vehicles</span>
+          <span className="quick-label">{homeCopy.quickUsed[lang]}</span>
           <span className="quick-desc">
-            Browse our selection of quality pre-owned cars, trucks, and SUVs
+            {homeCopy.quickUsedDesc[lang]}
           </span>
         </Link>
 
         <Link to="/new" className="quick-card">
-          <span className="quick-label">Shop New Vehicles</span>
+          <span className="quick-label">{homeCopy.quickNew[lang]}</span>
           <span className="quick-desc">
-            Explore the latest models with full manufacturer warranties
+            {homeCopy.quickNewDesc[lang]}
           </span>
         </Link>
 
         <Link to="/test-drive" className="quick-card">
-          <span className="quick-label">Schedule Test Drive</span>
+          <span className="quick-label">{homeCopy.quickTestDrive[lang]}</span>
           <span className="quick-desc">
-            Experience your dream vehicle in person — book online today
+            {homeCopy.quickTestDriveDesc[lang]}
           </span>
         </Link>
       </section>

@@ -295,7 +295,13 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Admin Panel Login Page"
+    - "Admin Panel Authentication"
+    - "Admin Vehicles Dashboard"
+    - "Add Vehicle Form Modal"
+    - "Vehicle Table with Actions"
+    - "Admin Backend API Integration"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"

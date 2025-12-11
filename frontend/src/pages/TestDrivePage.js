@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { testdriveCopy } from "../i18n/testdrive";
+import { formsCopy } from "../i18n/forms";
 import "../styles/forms.css";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
@@ -6,6 +9,7 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 const TestDrivePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { lang } = useLanguage();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,11 +54,8 @@ const TestDrivePage = () => {
   return (
     <div className="cma-page cma-form-page">
       <div className="cma-page-header">
-        <h1>Schedule a Test Drive</h1>
-        <p>
-          Experience your dream vehicle in person. Fill out the form below and
-          we'll have it ready for you at our Renton location.
-        </p>
+        <h1>{testdriveCopy.pageTitle[lang]}</h1>
+        <p>{testdriveCopy.pageSubtitle[lang]}</p>
       </div>
 
       <div className="cma-form-layout">
@@ -63,44 +64,44 @@ const TestDrivePage = () => {
           <form onSubmit={handleSubmit}>
             <div className="cma-field-grid">
               <div className="cma-field-group">
-                <label>First Name</label>
+                <label>{formsCopy.firstName[lang]}</label>
                 <input name="firstName" type="text" required />
               </div>
               <div className="cma-field-group">
-                <label>Last Name</label>
+                <label>{formsCopy.lastName[lang]}</label>
                 <input name="lastName" type="text" required />
               </div>
             </div>
 
             <div className="cma-field-group">
-              <label>Phone Number</label>
+              <label>{formsCopy.phone[lang]}</label>
               <input name="phone" type="tel" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Email Address</label>
+              <label>{formsCopy.email[lang]}</label>
               <input name="email" type="email" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Stock Number (Vehicle You're Interested In)</label>
+              <label>{testdriveCopy.stockLabel[lang]}</label>
               <input
                 name="stockNumber"
                 type="text"
-                placeholder="e.g. P57801"
+                placeholder={formsCopy.stockNumberPlaceholder[lang]}
                 required
               />
             </div>
 
             <div className="cma-field-grid">
               <div className="cma-field-group">
-                <label>Preferred Date</label>
+                <label>{testdriveCopy.preferredDate[lang]}</label>
                 <input name="preferredDate" type="date" required />
               </div>
               <div className="cma-field-group">
-                <label>Preferred Time</label>
+                <label>{testdriveCopy.preferredTime[lang]}</label>
                 <select name="preferredTime" required>
-                  <option value="">Select time...</option>
+                  <option value="">{testdriveCopy.selectTime[lang]}</option>
                   <option value="9:00 AM">9:00 AM</option>
                   <option value="10:00 AM">10:00 AM</option>
                   <option value="11:00 AM">11:00 AM</option>
@@ -116,10 +117,10 @@ const TestDrivePage = () => {
             </div>
 
             <div className="cma-field-group">
-              <label>Additional Notes (Optional)</label>
+              <label>{testdriveCopy.additionalNotes[lang]}</label>
               <textarea
                 name="notes"
-                placeholder="Any specific questions or requirements?"
+                placeholder={testdriveCopy.notesPlaceholder[lang]}
               />
             </div>
 
@@ -128,13 +129,12 @@ const TestDrivePage = () => {
               className="cma-btn cma-btn-primary cma-btn-full"
               disabled={submitting}
             >
-              {submitting ? "Submitting..." : "Schedule Test Drive"}
+              {submitting ? formsCopy.submitting[lang] : testdriveCopy.submitBtn[lang]}
             </button>
 
             {submitted && (
               <p className="cma-success-text">
-                Thank you! We've received your test drive request. Our team will
-                contact you shortly to confirm your appointment.
+                {testdriveCopy.successMessage[lang]}
               </p>
             )}
           </form>
@@ -142,15 +142,12 @@ const TestDrivePage = () => {
 
         {/* RIGHT: Location Info + Contact */}
         <div className="cma-card cma-side-card">
-          <h2>Visit Us in Renton</h2>
-          <p>
-            We're located at Good Chevrolet in Renton, Washington. Our friendly
-            sales team is here to help you find the perfect vehicle.
-          </p>
+          <h2>{testdriveCopy.visitTitle[lang]}</h2>
+          <p>{testdriveCopy.visitDesc[lang]}</p>
 
           <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
             <p className="cma-contact-line">
-              <strong>Address:</strong>
+              <strong>{formsCopy.addressLabel[lang]}:</strong>
               <br />
               Good Chevrolet Renton
               <br />
@@ -159,16 +156,16 @@ const TestDrivePage = () => {
           </div>
 
           <p className="cma-contact-note">
-            Questions? Prefer to schedule by phone?
+            {formsCopy.questionsPhone[lang]}
           </p>
           <p className="cma-contact-line">
-            Call:{" "}
+            {formsCopy.callLabel[lang]}:{" "}
             <a href="tel:12067861751" className="cma-link-strong">
               (206) 786-1751
             </a>
           </p>
           <p className="cma-contact-line">
-            Email:{" "}
+            {formsCopy.emailLabel[lang]}:{" "}
             <a
               href="mailto:jay.alfred@choosemeauto.com"
               className="cma-link-strong"

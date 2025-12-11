@@ -9,10 +9,8 @@ import NavBar from "./components/NavBar";
 import VehiclesPage from "./pages/VehiclesPage";
 import VehicleDetailPage from "./pages/VehicleDetailPage";
 
-// New pages
+// Pages
 import HomePage from "./pages/HomePage";
-import UsedVehiclesPage from "./pages/UsedVehiclesPage";
-import NewVehiclesPage from "./pages/NewVehiclesPage";
 import PreApprovalPage from "./pages/PreApprovalPage";
 import ContactPage from "./pages/ContactPage";
 import TestDrivePage from "./pages/TestDrivePage";
@@ -42,12 +40,13 @@ function App() {
                   <Route path="/vehicles" element={<VehiclesPage />} />
                   <Route path="/vehicle/:stock_id" element={<VehicleDetailPage />} />
 
-                  {/* Top nav tabs - using VehiclesPage with initialFilters */}
+                  {/* Used vehicles */}
                   <Route 
                     path="/used" 
                     element={<VehiclesPage initialFilters={{ condition: "Used" }} />} 
                   />
-                  <Route path="/new" element={<NewVehiclesPage />} />
+                  
+                  {/* Forms */}
                   <Route path="/preapproved" element={<PreApprovalPage />} />
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/test-drive" element={<TestDrivePage />} />

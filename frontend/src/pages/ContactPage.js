@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { contactCopy } from "../i18n/contact";
+import { formsCopy } from "../i18n/forms";
 import "../styles/forms.css";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
@@ -6,6 +9,7 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 const ContactPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { lang } = useLanguage();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,11 +52,8 @@ const ContactPage = () => {
   return (
     <div className="cma-page cma-form-page">
       <div className="cma-page-header">
-        <h1>Contact Choose Me Auto</h1>
-        <p>
-          Have a question? Interested in a specific vehicle? Fill out the form
-          below and we'll get back to you as soon as possible.
-        </p>
+        <h1>{contactCopy.pageTitle[lang]}</h1>
+        <p>{contactCopy.pageSubtitle[lang]}</p>
       </div>
 
       <div className="cma-form-layout">
@@ -61,39 +62,39 @@ const ContactPage = () => {
           <form onSubmit={handleSubmit}>
             <div className="cma-field-grid">
               <div className="cma-field-group">
-                <label>First Name</label>
+                <label>{formsCopy.firstName[lang]}</label>
                 <input name="firstName" type="text" required />
               </div>
               <div className="cma-field-group">
-                <label>Last Name</label>
+                <label>{formsCopy.lastName[lang]}</label>
                 <input name="lastName" type="text" required />
               </div>
             </div>
 
             <div className="cma-field-group">
-              <label>Phone Number</label>
+              <label>{formsCopy.phone[lang]}</label>
               <input name="phone" type="tel" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Email Address</label>
+              <label>{formsCopy.email[lang]}</label>
               <input name="email" type="email" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Stock Number (Optional)</label>
+              <label>{formsCopy.stockNumberOptional[lang]}</label>
               <input
                 name="stockNumber"
                 type="text"
-                placeholder="e.g. P57801"
+                placeholder={formsCopy.stockNumberPlaceholder[lang]}
               />
             </div>
 
             <div className="cma-field-group">
-              <label>Your Message</label>
+              <label>{contactCopy.messageLabel[lang]}</label>
               <textarea
                 name="message"
-                placeholder="Tell us how we can help you..."
+                placeholder={contactCopy.messagePlaceholder[lang]}
                 required
               />
             </div>
@@ -103,13 +104,12 @@ const ContactPage = () => {
               className="cma-btn cma-btn-primary cma-btn-full"
               disabled={submitting}
             >
-              {submitting ? "Sending..." : "Send Message"}
+              {submitting ? formsCopy.sending[lang] : contactCopy.submitBtn[lang]}
             </button>
 
             {submitted && (
               <p className="cma-success-text">
-                Thank you for contacting us! We've received your message and
-                will respond within 24 hours.
+                {contactCopy.successMessage[lang]}
               </p>
             )}
           </form>
@@ -117,38 +117,35 @@ const ContactPage = () => {
 
         {/* RIGHT: Contact Info */}
         <div className="cma-card cma-side-card">
-          <h2>Choose Me Auto - Renton</h2>
-          <p>
-            Located at Good Chevrolet in Renton, Washington. We specialize in
-            helping customers with bad credit, no credit, and first-time buyers.
-          </p>
+          <h2>{contactCopy.sideTitle[lang]}</h2>
+          <p>{contactCopy.sideDesc[lang]}</p>
 
           <div style={{ marginTop: "1.5rem", marginBottom: "1.5rem" }}>
             <p className="cma-contact-line">
-              <strong>Address:</strong>
+              <strong>{formsCopy.addressLabel[lang]}:</strong>
               <br />
               Good Chevrolet Renton
               <br />
               Renton, WA 98057
             </p>
             <p className="cma-contact-line">
-              <strong>Hours:</strong>
+              <strong>{formsCopy.hoursLabel[lang]}:</strong>
               <br />
-              Monday - Saturday: 9:00 AM - 7:00 PM
-              <br />
-              Sunday: 10:00 AM - 6:00 PM
+              {contactCopy.hours[lang].split('\n').map((line, i) => (
+                <span key={i}>{line}<br /></span>
+              ))}
             </p>
           </div>
 
-          <p className="cma-contact-note">Get in touch</p>
+          <p className="cma-contact-note">{formsCopy.getInTouch[lang]}</p>
           <p className="cma-contact-line">
-            Call:{" "}
+            {formsCopy.callLabel[lang]}:{" "}
             <a href="tel:12067861751" className="cma-link-strong">
               (206) 786-1751
             </a>
           </p>
           <p className="cma-contact-line">
-            Email:{" "}
+            {formsCopy.emailLabel[lang]}:{" "}
             <a
               href="mailto:jay.alfred@choosemeauto.com"
               className="cma-link-strong"

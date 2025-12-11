@@ -77,6 +77,10 @@ async def get_status_checks():
 app.include_router(api_router)
 app.include_router(vehicles_router, prefix="/api")
 app.include_router(leads_router, prefix="/api")
+app.include_router(admin_router)  # Admin router has its own /api/admin prefix
+
+# Set database for admin routes
+set_admin_db(db)
 
 app.add_middleware(
     CORSMiddleware,

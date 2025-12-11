@@ -1,4 +1,5 @@
 from fastapi import FastAPI, APIRouter
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -13,6 +14,7 @@ from datetime import datetime, timezone
 # Import routers and services
 from routes.vehicles import router as vehicles_router
 from routes.leads import router as leads_router
+from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
 from services.inventory_loader import load_inventory_from_csv
 
 

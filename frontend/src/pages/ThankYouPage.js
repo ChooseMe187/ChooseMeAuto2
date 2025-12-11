@@ -1,46 +1,45 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
+import { thankyouCopy } from "../i18n/thankyou";
 import "../styles/forms.css";
 
 const ThankYouPage = () => {
+  const { lang } = useLanguage();
+
   return (
     <div className="cma-page">
       <div className="cma-page-header">
         <h1 style={{ color: "#22c55e" }}>
-          You're All Set — We're Working on Your Approval ✅
+          {thankyouCopy.pageTitle[lang]} ✅
         </h1>
-        <p>
-          Thanks for completing your secure pre-approval. Now we match you with
-          the right vehicles and the right lender.
-        </p>
+        <p>{thankyouCopy.pageSubtitle[lang]}</p>
       </div>
 
       <div className="cma-form-layout" style={{ maxWidth: "960px", margin: "0 auto" }}>
         {/* Main Content */}
         <div className="cma-card">
           <h2 style={{ fontSize: "1.5rem", marginBottom: "1rem", color: "#f9fafb" }}>
-            What Happens Next
+            {thankyouCopy.whatHappensNext[lang]}
           </h2>
 
           <div style={{ marginBottom: "1.5rem" }}>
             <p style={{ marginBottom: "1rem", lineHeight: "1.6" }}>
-              Here's what we're doing behind the scenes:
+              {thankyouCopy.behindScenes[lang]}
             </p>
 
             <ul style={{ listStyle: "none", padding: 0 }}>
               <li style={{ marginBottom: "1rem", paddingLeft: "2rem", position: "relative" }}>
                 <span style={{ position: "absolute", left: 0, color: "#22c55e" }}>🔍</span>
-                <strong>Reviewing your approval</strong> with our lending partners
+                <strong>{thankyouCopy.step1[lang]}</strong>
               </li>
               <li style={{ marginBottom: "1rem", paddingLeft: "2rem", position: "relative" }}>
                 <span style={{ position: "absolute", left: 0, color: "#22c55e" }}>🚗</span>
-                <strong>Matching you with vehicles</strong> that fit your budget and credit
-                profile
+                <strong>{thankyouCopy.step2[lang]}</strong>
               </li>
               <li style={{ marginBottom: "1rem", paddingLeft: "2rem", position: "relative" }}>
                 <span style={{ position: "absolute", left: 0, color: "#22c55e" }}>📅</span>
-                <strong>Preparing options</strong> so your time at the dealership is fast and
-                focused, not all-day
+                <strong>{thankyouCopy.step3[lang]}</strong>
               </li>
             </ul>
           </div>
@@ -55,16 +54,16 @@ const ThankYouPage = () => {
             }}
           >
             <p style={{ marginBottom: "0.5rem", fontSize: "0.9rem" }}>
-              <strong>You'll hear from us within the next business day:</strong>
+              <strong>{thankyouCopy.hearFromUs[lang]}</strong>
             </p>
             <p style={{ marginBottom: "0.25rem" }}>
-              📞 Call or text from:{" "}
+              📞 {thankyouCopy.callOrTextFrom[lang]}{" "}
               <a href="tel:12067861751" style={{ color: "#22c55e", textDecoration: "none", fontWeight: "600" }}>
                 (206) 786-1751
               </a>
             </p>
             <p style={{ marginBottom: 0 }}>
-              📧 Email from:{" "}
+              📧 {thankyouCopy.emailFrom[lang]}{" "}
               <a
                 href="mailto:jay.alfred@choosemeauto.com"
                 style={{ color: "#22c55e", textDecoration: "none", fontWeight: "600" }}
@@ -76,31 +75,28 @@ const ThankYouPage = () => {
 
           <div style={{ marginBottom: "1.5rem" }}>
             <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem", color: "#f9fafb" }}>
-              Want to Speed Things Up Even More?
+              {thankyouCopy.speedUp[lang]}
             </h3>
             <p style={{ marginBottom: "1rem", lineHeight: "1.6" }}>
-              Call or text{" "}
-              <a href="tel:12067861751" style={{ color: "#38bdf8", textDecoration: "none", fontWeight: "600" }}>
-                (206) 786-1751
-              </a>{" "}
-              and mention you <strong>"Already Completed the Pre-Approval"</strong>.
+              {thankyouCopy.speedUpDesc[lang].split('"').map((part, i) => 
+                i === 1 ? <strong key={i}>"{part}"</strong> : part
+              )}
             </p>
             <p style={{ marginBottom: "1rem", lineHeight: "1.6" }}>
-              We'll pull your file and give you a quick overview of what you qualify for
-              and which vehicles make the most sense.
+              {thankyouCopy.speedUpDesc2[lang]}
             </p>
           </div>
 
           <div>
             <h3 style={{ fontSize: "1.25rem", marginBottom: "0.75rem", color: "#f9fafb" }}>
-              Still Browsing? Check Out Our Inventory
+              {thankyouCopy.stillBrowsing[lang]}
             </h3>
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
               <Link to="/used" className="cma-btn cma-btn-secondary">
-                Shop Used Inventory
+                {thankyouCopy.shopUsed[lang]}
               </Link>
               <Link to="/vehicles" className="cma-btn cma-btn-secondary">
-                View All Vehicles
+                {thankyouCopy.viewAll[lang]}
               </Link>
             </div>
           </div>
@@ -108,13 +104,13 @@ const ThankYouPage = () => {
 
         {/* Sidebar */}
         <div className="cma-card cma-side-card">
-          <h2>Help Us Help You</h2>
-          <p>Share a few more details so we can prepare the best options for you:</p>
+          <h2>{thankyouCopy.helpUsTitle[lang]}</h2>
+          <p>{thankyouCopy.helpUsDesc[lang]}</p>
 
           <div style={{ marginTop: "1.5rem" }}>
             <div style={{ marginBottom: "1rem" }}>
               <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-                Preferred payment range:
+                {thankyouCopy.paymentRange[lang]}
               </label>
               <select
                 style={{
@@ -126,7 +122,7 @@ const ThankYouPage = () => {
                   color: "#f9fafb",
                 }}
               >
-                <option value="">Select range...</option>
+                <option value="">{thankyouCopy.selectRange[lang]}</option>
                 <option value="200-300">$200 - $300/mo</option>
                 <option value="300-400">$300 - $400/mo</option>
                 <option value="400-500">$400 - $500/mo</option>
@@ -136,7 +132,7 @@ const ThankYouPage = () => {
 
             <div style={{ marginBottom: "1rem" }}>
               <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-                Preferred vehicle type:
+                {thankyouCopy.vehicleType[lang]}
               </label>
               <select
                 style={{
@@ -148,7 +144,7 @@ const ThankYouPage = () => {
                   color: "#f9fafb",
                 }}
               >
-                <option value="">Select type...</option>
+                <option value="">{thankyouCopy.selectType[lang]}</option>
                 <option value="SUV">SUV / Crossover</option>
                 <option value="Sedan">Sedan</option>
                 <option value="Truck">Truck</option>
@@ -158,7 +154,7 @@ const ThankYouPage = () => {
 
             <div style={{ marginBottom: "1rem" }}>
               <label style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.5rem" }}>
-                Do you have a trade-in?
+                {thankyouCopy.tradeIn[lang]}
               </label>
               <select
                 style={{
@@ -170,9 +166,9 @@ const ThankYouPage = () => {
                   color: "#f9fafb",
                 }}
               >
-                <option value="">Select...</option>
-                <option value="yes">Yes, I have a trade-in</option>
-                <option value="no">No trade-in</option>
+                <option value="">{thankyouCopy.selectOption[lang]}</option>
+                <option value="yes">{thankyouCopy.yesTradeIn[lang]}</option>
+                <option value="no">{thankyouCopy.noTradeIn[lang]}</option>
               </select>
             </div>
 
@@ -181,11 +177,11 @@ const ThankYouPage = () => {
               style={{ marginTop: "1rem" }}
               onClick={() => alert("This would submit the additional info to help customize your experience")}
             >
-              Submit Preferences
+              {thankyouCopy.submitPrefs[lang]}
             </button>
           </div>
 
-          <p className="cma-contact-note">This information helps us prepare better options for you.</p>
+          <p className="cma-contact-note">{thankyouCopy.prefsHelp[lang]}</p>
         </div>
       </div>
 
@@ -199,7 +195,7 @@ const ThankYouPage = () => {
             fontSize: "0.9rem",
           }}
         >
-          ← Back to Home
+          ← {thankyouCopy.backHome[lang]}
         </Link>
       </div>
     </div>

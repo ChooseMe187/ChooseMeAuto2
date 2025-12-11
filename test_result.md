@@ -87,6 +87,102 @@ backend:
         comment: "Verified via curl - API returns 113 vehicles including 2023 Honda Accord"
 
 frontend:
+  - task: "i18n Language Toggle Button in Navbar (Desktop)"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/NavBar.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Desktop language toggle button shows 'ES' when in English mode and 'EN' when in Spanish mode. Button is visible in navbar and functions correctly."
+
+  - task: "i18n Language Toggle Button in Navbar (Mobile)"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/NavBar.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Mobile language toggle button (390x844 viewport) is visible next to hamburger menu and functions correctly. Shows appropriate language code based on current mode."
+
+  - task: "i18n Homepage Language Switch - Hero Text"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/HomePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Hero text correctly switches between 'Get the Car You Deserve, Regardless of Credit' (English) and 'Obtén el auto que mereces, Sin Importar tu Crédito' (Spanish)."
+
+  - task: "i18n Homepage Language Switch - Navigation Links"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/NavBar.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Navigation links properly translate: Home→Inicio, Used→Usados, Contact→Contacto. Both desktop and mobile navigation menus work correctly."
+
+  - task: "i18n Homepage Language Switch - Credit Badges"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/HomePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Credit badges correctly translate from 'Bad Credit OK' to 'Crédito Malo OK' and 'No Credit OK' to 'Sin Crédito OK'."
+
+  - task: "i18n Pre-Approval Page Translation"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/PreApprovalPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Pre-approval page title shows 'Obtén tu Pre-Aprobación con Choose Me Auto' in Spanish. Form labels correctly translate: Nombre, Apellido, Teléfono, Correo Electrónico."
+
+  - task: "i18n Test Drive Page Translation"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/TestDrivePage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Test Drive page title correctly shows 'Agenda una Prueba de Manejo' in Spanish mode."
+
+  - task: "i18n Contact Page Translation"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/ContactPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Contact page title correctly shows 'Contacta a Choose Me Auto' in Spanish mode."
+
   - task: "Remove Emergent branding from page title"
     implemented: true
     working: true

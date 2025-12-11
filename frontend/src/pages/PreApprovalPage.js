@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { preapprovalCopy } from "../i18n/preapproval";
+import { formsCopy } from "../i18n/forms";
 import "../styles/forms.css";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
@@ -6,6 +9,7 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 const PreApprovalPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const { lang } = useLanguage();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,19 +51,8 @@ const PreApprovalPage = () => {
   return (
     <div className="cma-page cma-form-page">
       <div className="cma-page-header">
-        <h1>Get Pre-Approved with Choose Me Auto</h1>
-        <h2 style={{ fontSize: "1.5rem", marginTop: "0.5rem", opacity: 0.9 }}>
-          Obtén tu Preaprobación con Choose Me Auto
-        </h2>
-        <p>
-          Step 1: Tell us how to reach you. Step 2: Complete the secure bank
-          application. We'll help you every step of the way&mdash;even with bad
-          credit, no credit, or first-time buying.
-        </p>
-        <p style={{ fontSize: "0.9rem", marginTop: "0.5rem", opacity: 0.85 }}>
-          Paso 1: Danos tu información de contacto. Paso 2: Completa la solicitud segura del banco.
-          Te ayudaremos en cada paso&mdash;incluso con crédito malo, sin crédito, o si compras por primera vez.
-        </p>
+        <h1>{preapprovalCopy.pageTitle[lang]}</h1>
+        <p>{preapprovalCopy.pageSubtitle[lang]}</p>
       </div>
 
       <div className="cma-form-layout">
@@ -68,31 +61,31 @@ const PreApprovalPage = () => {
           <form onSubmit={handleSubmit}>
             <div className="cma-field-grid">
               <div className="cma-field-group">
-                <label>First Name | Nombre</label>
+                <label>{formsCopy.firstName[lang]}</label>
                 <input name="firstName" type="text" required />
               </div>
               <div className="cma-field-group">
-                <label>Last Name | Apellido</label>
+                <label>{formsCopy.lastName[lang]}</label>
                 <input name="lastName" type="text" required />
               </div>
             </div>
 
             <div className="cma-field-group">
-              <label>Phone Number | Teléfono</label>
+              <label>{formsCopy.phone[lang]}</label>
               <input name="phone" type="tel" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Email Address | Correo Electrónico</label>
+              <label>{formsCopy.email[lang]}</label>
               <input name="email" type="email" required />
             </div>
 
             <div className="cma-field-group">
-              <label>Stock Number (Vehicle You're Interested In) | Número de Inventario (si ya tienes un auto en mente)</label>
+              <label>{preapprovalCopy.stockLabel[lang]}</label>
               <input
                 name="stockNumber"
                 type="text"
-                placeholder="e.g. P57801"
+                placeholder={formsCopy.stockNumberPlaceholder[lang]}
               />
             </div>
 
@@ -101,16 +94,12 @@ const PreApprovalPage = () => {
               className="cma-btn cma-btn-primary cma-btn-full"
               disabled={submitting}
             >
-              {submitting ? "Submitting... | Enviando..." : "Submit Info | Enviar Información"}
+              {submitting ? formsCopy.submitting[lang] : preapprovalCopy.submitBtn[lang]}
             </button>
 
             {submitted && (
               <p className="cma-success-text">
-                <strong>Thank you! We've received your info.</strong> Next, complete the secure
-                pre-approval application so we can lock in terms for you.
-                <br /><br />
-                <strong>¡Gracias! Hemos recibido tu información.</strong> Ahora completa la solicitud
-                segura de preaprobación para que podamos asegurar tus términos.
+                {preapprovalCopy.successMessage[lang]}
               </p>
             )}
           </form>
@@ -120,18 +109,15 @@ const PreApprovalPage = () => {
         <div className="cma-card cma-side-card">
           {/* Credit OK Banner */}
           <div className="cma-credit-banner">
-            <span>✓ Bad Credit OK</span>
+            <span>✓ {preapprovalCopy.creditBadge1[lang]}</span>
             <span>·</span>
-            <span>✓ No Credit OK</span>
+            <span>✓ {preapprovalCopy.creditBadge2[lang]}</span>
             <span>·</span>
-            <span>✓ First-Time Buyers Welcome</span>
+            <span>✓ {preapprovalCopy.creditBadge3[lang]}</span>
           </div>
           
-          <h2>Step 2: Complete the Secure Bank Application</h2>
-          <p>
-            After you submit your info, click below to finish the official
-            pre-approval on Good Chevrolet&apos;s secure finance page.
-          </p>
+          <h2>{preapprovalCopy.step2Title[lang]}</h2>
+          <p>{preapprovalCopy.step2Desc[lang]}</p>
 
           <a
             href="https://www.goodchev.com/preapproved.aspx"
@@ -139,20 +125,20 @@ const PreApprovalPage = () => {
             rel="noreferrer"
             className="cma-btn cma-btn-secondary cma-btn-full"
           >
-            Continue to Full Pre-Approval Application
+            {preapprovalCopy.continueBtn[lang]}
           </a>
 
           <p className="cma-contact-note">
-            Prefer to do this over the phone?
+            {formsCopy.preferPhone[lang]}
           </p>
           <p className="cma-contact-line">
-            Call:{" "}
+            {formsCopy.callLabel[lang]}:{" "}
             <a href="tel:12067861751" className="cma-link-strong">
               (206) 786-1751
             </a>
           </p>
           <p className="cma-contact-line">
-            Email:{" "}
+            {formsCopy.emailLabel[lang]}:{" "}
             <a
               href="mailto:jay.alfred@choosemeauto.com"
               className="cma-link-strong"

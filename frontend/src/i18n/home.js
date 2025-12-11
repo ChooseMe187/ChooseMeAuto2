@@ -59,13 +59,13 @@ export const homeCopy = {
     en: "Browse our selection of quality pre-owned cars, trucks, and SUVs",
     es: "Explora nuestra selección de autos, camionetas y SUVs usados de calidad",
   },
-  quickNew: {
-    en: "Shop New Vehicles",
-    es: "Ver Vehículos Nuevos",
+  quickPreApproved: {
+    en: "Get Pre-Approved",
+    es: "Obtén Pre-Aprobación",
   },
-  quickNewDesc: {
-    en: "Explore the latest models with full manufacturer warranties",
-    es: "Explora los últimos modelos con garantía completa del fabricante",
+  quickPreApprovedDesc: {
+    en: "Bad credit? No credit? No problem. Get approved in minutes",
+    es: "¿Crédito malo? ¿Sin crédito? Sin problema. Aprobación en minutos",
   },
   quickTestDrive: {
     en: "Schedule Test Drive",

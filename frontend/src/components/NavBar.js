@@ -1,20 +1,24 @@
 import React, { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useLanguage } from "../context/LanguageContext";
+import { navbarCopy } from "../i18n/navbar";
+import LanguageToggle from "./LanguageToggle";
 import "./../styles/navbar.css";
 
 const NavBar = () => {
   const [open, setOpen] = useState(false);
+  const { lang, toggleLang } = useLanguage();
 
   const toggleMenu = () => setOpen((prev) => !prev);
   const closeMenu = () => setOpen(false);
 
   const navLinks = [
-    { to: "/", label: "Home", exact: true },
-    { to: "/used", label: "Used" },
-    { to: "/new", label: "New" },
-    { to: "/preapproved", label: "Pre-Approved" },
-    { to: "/test-drive", label: "Test Drive" },
-    { to: "/contact", label: "Contact" },
+    { to: "/", label: navbarCopy.home[lang], exact: true },
+    { to: "/used", label: navbarCopy.used[lang] },
+    { to: "/new", label: navbarCopy.new[lang] },
+    { to: "/preapproved", label: navbarCopy.preApproved[lang] },
+    { to: "/test-drive", label: navbarCopy.testDrive[lang] },
+    { to: "/contact", label: navbarCopy.contact[lang] },
   ];
 
   return (
@@ -24,7 +28,7 @@ const NavBar = () => {
         <div className="cma-navbar-brand">
           <Link to="/" onClick={closeMenu} className="cma-logo-link">
             <span className="cma-logo-main">Choose Me Auto</span>
-            <span className="cma-logo-sub">Your Trusted Car Dealership</span>
+            <span className="cma-logo-sub">{navbarCopy.tagline[lang]}</span>
           </Link>
         </div>
 
@@ -45,21 +49,31 @@ const NavBar = () => {
           
           {/* Credit OK Badges */}
           <div className="cma-credit-badges">
-            <span className="cma-credit-badge">✓ Bad Credit OK</span>
-            <span className="cma-credit-badge">✓ No Credit OK</span>
+            <span className="cma-credit-badge">✓ {navbarCopy.badCreditOK[lang]}</span>
+            <span className="cma-credit-badge">✓ {navbarCopy.noCreditOK[lang]}</span>
           </div>
           
+          {/* Language Toggle */}
+          <LanguageToggle />
+          
           <Link to="/preapproved" className="cma-cta-btn">
-            Get Pre-Approved
+            {navbarCopy.getPreApproved[lang]}
           </Link>
         </nav>
 
-        {/* Mobile: Credit Badges + Menu Button */}
+        {/* Mobile: Credit Badges + Language Toggle + Menu Button */}
         <div className="cma-mobile-right">
           <div className="cma-credit-badges-mobile">
-            <span className="cma-credit-badge-mobile">✓ Bad Credit OK</span>
-            <span className="cma-credit-badge-mobile">✓ No Credit OK</span>
+            <span className="cma-credit-badge-mobile">✓ {navbarCopy.badCreditOK[lang]}</span>
+            <span className="cma-credit-badge-mobile">✓ {navbarCopy.noCreditOK[lang]}</span>
           </div>
+          <button
+            onClick={toggleLang}
+            className="cma-lang-toggle-mobile"
+            aria-label="Toggle language"
+          >
+            {lang === "en" ? "ES" : "EN"}
+          </button>
           <button
             className="cma-burger-btn"
             onClick={toggleMenu}
@@ -89,7 +103,7 @@ const NavBar = () => {
             </NavLink>
           ))}
           <Link to="/preapproved" onClick={closeMenu} className="cma-cta-btn-mobile">
-            Get Pre-Approved
+            {navbarCopy.getPreApproved[lang]}
           </Link>
         </nav>
       )}

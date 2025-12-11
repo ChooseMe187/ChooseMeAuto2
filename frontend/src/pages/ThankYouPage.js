@@ -79,7 +79,7 @@ const ThankYouPage = () => {
             </h3>
             <p style={{ marginBottom: "1rem", lineHeight: "1.6" }}>
               {thankyouCopy.speedUpDesc[lang].split('"').map((part, i) => 
-                i === 1 ? <strong key={i}>"{part}"</strong> : part
+                i === 1 ? <strong key={i}>&quot;{part}&quot;</strong> : part
               )}
             </p>
             <p style={{ marginBottom: "1rem", lineHeight: "1.6" }}>

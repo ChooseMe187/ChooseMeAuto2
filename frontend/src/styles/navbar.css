@@ -90,6 +90,27 @@
   border: 1px solid #2563eb;
 }
 
+/* Language Toggle - Mobile */
+.cma-lang-toggle-mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.cma-lang-toggle-mobile:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Desktop links */
 
 .cma-nav-links-desktop {

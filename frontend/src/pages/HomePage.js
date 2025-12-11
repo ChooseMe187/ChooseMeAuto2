@@ -85,10 +85,10 @@ const HomePage = () => {
           </span>
         </Link>
 
-        <Link to="/new" className="quick-card">
-          <span className="quick-label">{homeCopy.quickNew[lang]}</span>
+        <Link to="/preapproved" className="quick-card">
+          <span className="quick-label">{homeCopy.quickPreApproved[lang]}</span>
           <span className="quick-desc">
-            {homeCopy.quickNewDesc[lang]}
+            {homeCopy.quickPreApprovedDesc[lang]}
           </span>
         </Link>
 

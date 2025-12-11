@@ -15,7 +15,6 @@ const NavBar = () => {
   const navLinks = [
     { to: "/", label: navbarCopy.home[lang], exact: true },
     { to: "/used", label: navbarCopy.used[lang] },
-    { to: "/new", label: navbarCopy.new[lang] },
     { to: "/preapproved", label: navbarCopy.preApproved[lang] },
     { to: "/test-drive", label: navbarCopy.testDrive[lang] },
     { to: "/contact", label: navbarCopy.contact[lang] },

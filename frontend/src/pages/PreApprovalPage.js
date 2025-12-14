@@ -5,24 +5,63 @@ import { formsCopy } from "../i18n/forms";
 import "../styles/forms.css";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
+const GOOD_CHEV_URL = "https://www.goodchev.com/preapproved.aspx";
 
 const PreApprovalPage = () => {
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const { lang } = useLanguage();
+  
+  // Form state
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    email: "",
+    stockNumber: "",
+  });
+  
+  const [errors, setErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [canContinue, setCanContinue] = useState(false);
+
+  // Validation helpers
+  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  const isValidPhone = (v) => v.replace(/\D/g, "").length >= 10;
+
+  const validate = () => {
+    const e = {};
+    if (!form.firstName.trim()) e.firstName = lang === "en" ? "First name is required." : "El nombre es requerido.";
+    if (!form.lastName.trim()) e.lastName = lang === "en" ? "Last name is required." : "El apellido es requerido.";
+    if (!isValidPhone(form.phone)) e.phone = lang === "en" ? "Enter a valid phone number (10+ digits)." : "Ingresa un número de teléfono válido (10+ dígitos).";
+    if (!isValidEmail(form.email)) e.email = lang === "en" ? "Enter a valid email address." : "Ingresa un correo electrónico válido.";
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleChange = (field) => (e) => {
+    // Reset canContinue if user edits after submission
+    setCanContinue(false);
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    // Clear field error on change
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validate()) return;
+    
     setSubmitting(true);
+    setErrors({});
 
-    const formData = new FormData(e.target);
     const payload = {
       type: "preapproval",
-      firstName: formData.get("firstName"),
-      lastName: formData.get("lastName"),
-      phone: formData.get("phone"),
-      email: formData.get("email"),
-      stockNumber: formData.get("stockNumber"),
+      firstName: form.firstName,
+      lastName: form.lastName,
+      phone: form.phone,
+      email: form.email,
+      stockNumber: form.stockNumber,
       source: "preapproved-page",
     };
 
@@ -38,14 +77,33 @@ const PreApprovalPage = () => {
       }
 
       console.log("Preapproval lead submitted:", payload);
-      setSubmitted(true);
-      e.target.reset();
+      setCanContinue(true);
+      
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please try again.");
+      setErrors((prev) => ({
+        ...prev,
+        form: lang === "en" 
+          ? "Something went wrong. Please try again." 
+          : "Algo salió mal. Por favor intenta de nuevo.",
+      }));
+      setCanContinue(false);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleContinueToGoodChev = () => {
+    if (!canContinue) {
+      setErrors((prev) => ({
+        ...prev,
+        form: lang === "en" 
+          ? "Please complete and submit the form first." 
+          : "Por favor completa y envía el formulario primero.",
+      }));
+      return;
+    }
+    window.open(GOOD_CHEV_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -58,33 +116,64 @@ const PreApprovalPage = () => {
       <div className="cma-form-layout">
         {/* LEFT: FORM */}
         <div className="cma-card">
+          {errors.form && (
+            <div className="cma-error-banner">{errors.form}</div>
+          )}
+          
           <form onSubmit={handleSubmit}>
             <div className="cma-field-grid">
               <div className="cma-field-group">
-                <label>{formsCopy.firstName[lang]}</label>
-                <input name="firstName" type="text" required />
+                <label>{formsCopy.firstName[lang]} *</label>
+                <input 
+                  type="text" 
+                  value={form.firstName}
+                  onChange={handleChange("firstName")}
+                  className={errors.firstName ? "cma-input-error" : ""}
+                />
+                {errors.firstName && <span className="cma-field-error">{errors.firstName}</span>}
               </div>
               <div className="cma-field-group">
-                <label>{formsCopy.lastName[lang]}</label>
-                <input name="lastName" type="text" required />
+                <label>{formsCopy.lastName[lang]} *</label>
+                <input 
+                  type="text" 
+                  value={form.lastName}
+                  onChange={handleChange("lastName")}
+                  className={errors.lastName ? "cma-input-error" : ""}
+                />
+                {errors.lastName && <span className="cma-field-error">{errors.lastName}</span>}
               </div>
             </div>
 
             <div className="cma-field-group">
-              <label>{formsCopy.phone[lang]}</label>
-              <input name="phone" type="tel" required />
+              <label>{formsCopy.phone[lang]} *</label>
+              <input 
+                type="tel" 
+                value={form.phone}
+                onChange={handleChange("phone")}
+                placeholder="(555) 555-5555"
+                className={errors.phone ? "cma-input-error" : ""}
+              />
+              {errors.phone && <span className="cma-field-error">{errors.phone}</span>}
             </div>
 
             <div className="cma-field-group">
-              <label>{formsCopy.email[lang]}</label>
-              <input name="email" type="email" required />
+              <label>{formsCopy.email[lang]} *</label>
+              <input 
+                type="email" 
+                value={form.email}
+                onChange={handleChange("email")}
+                placeholder="you@example.com"
+                className={errors.email ? "cma-input-error" : ""}
+              />
+              {errors.email && <span className="cma-field-error">{errors.email}</span>}
             </div>
 
             <div className="cma-field-group">
               <label>{preapprovalCopy.stockLabel[lang]}</label>
               <input
-                name="stockNumber"
                 type="text"
+                value={form.stockNumber}
+                onChange={handleChange("stockNumber")}
                 placeholder={formsCopy.stockNumberPlaceholder[lang]}
               />
             </div>
@@ -97,7 +186,7 @@ const PreApprovalPage = () => {
               {submitting ? formsCopy.submitting[lang] : preapprovalCopy.submitBtn[lang]}
             </button>
 
-            {submitted && (
+            {canContinue && (
               <p className="cma-success-text">
                 {preapprovalCopy.successMessage[lang]}
               </p>
@@ -119,14 +208,23 @@ const PreApprovalPage = () => {
           <h2>{preapprovalCopy.step2Title[lang]}</h2>
           <p>{preapprovalCopy.step2Desc[lang]}</p>
 
-          <a
-            href="https://www.goodchev.com/preapproved.aspx"
-            target="_blank"
-            rel="noreferrer"
-            className="cma-btn cma-btn-secondary cma-btn-full"
+          {/* Gated Button - Only clickable after form submission */}
+          <button
+            type="button"
+            onClick={handleContinueToGoodChev}
+            disabled={!canContinue}
+            className={`cma-btn cma-btn-full ${canContinue ? "cma-btn-secondary" : "cma-btn-disabled"}`}
           >
             {preapprovalCopy.continueBtn[lang]}
-          </a>
+          </button>
+          
+          {!canContinue && (
+            <p className="cma-unlock-hint">
+              {lang === "en" 
+                ? "Submit your info above to unlock the secure credit application." 
+                : "Envía tu información arriba para desbloquear la solicitud de crédito segura."}
+            </p>
+          )}
 
           <p className="cma-contact-note">
             {formsCopy.preferPhone[lang]}

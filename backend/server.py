@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 # Import routers and services
 from routes.vehicles import router as vehicles_router
-from routes.leads import router as leads_router
+from routes.leads import router as leads_router, set_db as set_leads_db
 from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
 from services.inventory_loader import load_inventory_from_csv
 
@@ -81,6 +81,9 @@ app.include_router(admin_router)  # Admin router has its own /api/admin prefix
 
 # Set database for admin routes
 set_admin_db(db)
+
+# Set database for leads routes
+set_leads_db(db)
 
 app.add_middleware(
     CORSMiddleware,

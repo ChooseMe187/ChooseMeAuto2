@@ -1,25 +1,26 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables FIRST before any imports that use them
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
-from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 import uuid
 from datetime import datetime, timezone
 
-# Import routers and services
+# Import routers and services AFTER loading env
 from routes.vehicles import router as vehicles_router
 from routes.leads import router as leads_router, set_db as set_leads_db
 from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
 from services.inventory_loader import load_inventory_from_csv
-
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']

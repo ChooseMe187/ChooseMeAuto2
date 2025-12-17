@@ -4,8 +4,8 @@ export const testdriveCopy = {
     es: "Agenda una Prueba de Manejo",
   },
   pageSubtitle: {
-    en: "Experience your dream vehicle in person. Fill out the form below and we'll have it ready for you at our Renton location.",
-    es: "Experimenta tu vehículo soñado en persona. Llena el formulario y lo tendremos listo para ti en nuestra ubicación de Renton.",
+    en: "Experience your dream vehicle in person. Fill out the form below and we'll have it ready for you.",
+    es: "Experimenta tu vehículo soñado en persona. Llena el formulario y lo tendremos listo para ti.",
   },
   stockLabel: {
     en: "Stock Number (Vehicle You're Interested In)",
@@ -40,11 +40,11 @@ export const testdriveCopy = {
     es: "¡Gracias! Hemos recibido tu solicitud de prueba de manejo. Nuestro equipo te contactará pronto para confirmar tu cita.",
   },
   visitTitle: {
-    en: "Visit Us in Renton",
-    es: "Visítanos en Renton",
+    en: "Visit Us",
+    es: "Visítanos",
   },
   visitDesc: {
-    en: "We're located at Good Chevrolet in Renton, Washington. Our friendly sales team is here to help you find the perfect vehicle.",
-    es: "Estamos ubicados en Good Chevrolet en Renton, Washington. Nuestro amable equipo de ventas está aquí para ayudarte a encontrar el vehículo perfecto.",
+    en: "We're here to help you find the perfect vehicle. Our friendly sales team is ready to assist you.",
+    es: "Estamos aquí para ayudarte a encontrar el vehículo perfecto. Nuestro amable equipo de ventas está listo para asistirte.",
   },
 };

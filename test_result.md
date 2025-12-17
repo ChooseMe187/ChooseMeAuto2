@@ -495,6 +495,66 @@ test_plan:
         agent: "testing"
         comment: "✅ VERIFIED via comprehensive API testing: MongoDB storage working perfectly. Lead persistence confirmed - leads survive server restarts and are properly stored in 'leads' collection. CRUD operations tested: CREATE (lead submission), READ (list leads, get single lead), UPDATE (status changes), DELETE (admin deletion). All endpoints properly authenticated and returning correct data."
 
+  - task: "Admin Panel New Features - Assigned To Column"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added 'Assigned To' dropdown column in leads table with team members: Jay, Sarah, Mike, Unassigned. Updates via PATCH /api/leads/{id}/assign endpoint."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED via API testing: Assignment functionality working perfectly. Successfully changed lead assignment to 'Jay' via PATCH /api/leads/{id}/assign endpoint. API returns updated lead with new assigned_to value and updated timestamp. Frontend component properly structured with .admin-assign-select dropdown."
+
+  - task: "Admin Panel New Features - Notes Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added notes feature with 📝 button showing note count, modal with notes list, textarea for new notes, and Add Note functionality via POST /api/leads/{id}/notes."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED via API testing: Notes feature working perfectly. Successfully added test note 'Test note from QA - Admin Panel Testing' via POST /api/leads/{id}/notes endpoint. Note properly stored with timestamp and 'by' field. Frontend component includes .admin-notes-btn, .admin-notes-modal, and proper note display structure."
+
+  - task: "Admin Panel New Features - CSV Export"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added CSV export functionality with '📥 Export CSV' button that downloads leads data via /api/leads/export.csv endpoint with proper filtering support."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED via API testing: CSV export working perfectly. Successfully downloaded CSV file via /api/leads/export.csv endpoint. File contains proper headers: created_at, lead_type, status, first_name, last_name, phone, email, assigned_to, notes_count, source, message. Data properly formatted and includes all lead information."
+
+  - task: "Admin Panel New Features - Enhanced Filters"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Enhanced filter dropdowns for Status (All Statuses, New, Contacted, Qualified, Converted, Lost) and Type (All Types, Pre-Approval, Test Drive, Contact, Availability) with proper API integration."
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED via API testing: Filter functionality working perfectly. Status filter (status=new) returns 4 leads with 'new' status. Type filter (lead_type=pre_approval) returns 4 pre-approval leads. Both filters properly integrated with backend API and return correctly filtered results. Frontend components properly structured with .admin-filter-select dropdowns."
+
 agent_communication:
   - agent: "main"
     message: "Implemented P0 (remove Emergent branding) and P1 (add credit badges). Need UI verification for: 1) Browser tab title shows 'Choose Me Auto', 2) No 'Made with Emergent' badge visible in bottom right, 3) Navbar shows two pill badges '✓ Bad Credit OK' and '✓ No Credit OK' on desktop, 4) Mobile view shows stacked badges, 5) /vehicles page shows 2023 Honda Accord card, 6) Pre-Approval page shows credit banner"

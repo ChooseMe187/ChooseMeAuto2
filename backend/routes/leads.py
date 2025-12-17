@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, timezone
@@ -6,9 +7,15 @@ from bson import ObjectId
 import os
 import requests
 import logging
+import csv
+import io
 
-from models.lead import LeadCreate, LeadOut, LeadStatusUpdate, LegacyLeadCreate, Lead
+from models.lead import (
+    LeadCreate, LeadOut, LeadStatusUpdate, LegacyLeadCreate, Lead,
+    NoteCreate, AssignmentUpdate, LeadNote
+)
 from auth import require_admin
+from utils.alerts import notify_new_lead, notify_status_change
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +55,15 @@ class FormLeadPayload(BaseModel):
 
 def serialize_lead(doc) -> dict:
     """Convert MongoDB document to LeadOut format"""
+    # Parse notes
+    notes = []
+    for note in doc.get("notes", []):
+        notes.append(LeadNote(
+            at=note.get("at", datetime.now(timezone.utc)),
+            by=note.get("by", "admin"),
+            text=note.get("text", "")
+        ))
+    
     return {
         "id": str(doc["_id"]),
         "lead_type": doc.get("lead_type", "unknown"),
@@ -70,6 +86,10 @@ def serialize_lead(doc) -> dict:
         "preferred_time": doc.get("preferred_time"),
         "source_url": doc.get("source_url"),
         "source": doc.get("source"),
+        # New fields
+        "assigned_to": doc.get("assigned_to"),
+        "notes": notes,
+        "last_contacted_at": doc.get("last_contacted_at"),
         "created_at": doc.get("created_at", datetime.now(timezone.utc)),
         "updated_at": doc.get("updated_at", datetime.now(timezone.utc)),
     }
@@ -157,6 +177,9 @@ async def create_form_lead(lead: FormLeadPayload):
         "preferred_date": lead.preferredDate,
         "preferred_time": lead.preferredTime,
         "message": lead.notes or lead.message,
+        "assigned_to": None,
+        "notes": [],
+        "last_contacted_at": None,
         "created_at": now,
         "updated_at": now,
     }
@@ -175,6 +198,12 @@ async def create_form_lead(lead: FormLeadPayload):
         send_to_mailchimp(lead)
     except Exception as e:
         logger.warning(f"⚠️ Mailchimp error: {str(e)}")
+    
+    # Send alerts
+    try:
+        notify_new_lead(doc)
+    except Exception as e:
+        logger.warning(f"⚠️ Alert error: {str(e)}")
     
     return {"ok": True, "message": "Lead captured successfully", "id": str(result.inserted_id)}
 
@@ -205,6 +234,9 @@ async def create_availability_lead(payload: LegacyLeadCreate):
         "vin": payload.vin,
         "vehicle_summary": payload.vehicle_summary,
         "source": "vehicle-detail-page",
+        "assigned_to": None,
+        "notes": [],
+        "last_contacted_at": None,
         "created_at": now,
         "updated_at": now,
     }
@@ -216,6 +248,12 @@ async def create_availability_lead(payload: LegacyLeadCreate):
         f"🚗 New availability lead - ID: {result.inserted_id} | "
         f"Stock: {payload.stock_id} | Customer: {payload.name}"
     )
+    
+    # Send alerts
+    try:
+        notify_new_lead(doc)
+    except Exception as e:
+        logger.warning(f"⚠️ Alert error: {str(e)}")
     
     # Return legacy format for backward compatibility
     return Lead(
@@ -241,6 +279,7 @@ async def create_availability_lead(payload: LegacyLeadCreate):
 async def list_all_leads(
     status: Optional[str] = None,
     lead_type: Optional[str] = None,
+    assigned_to: Optional[str] = None,
     _: bool = Depends(require_admin)
 ):
     """List all leads (admin only)"""
@@ -251,11 +290,109 @@ async def list_all_leads(
         query["status"] = status
     if lead_type:
         query["lead_type"] = lead_type
+    if assigned_to:
+        query["assigned_to"] = assigned_to
     
     cursor = coll.find(query).sort("created_at", -1)
     docs = await cursor.to_list(500)
     
     return [serialize_lead(d) for d in docs]
+
+
+@router.get("/leads/export.csv")
+async def export_leads_csv(
+    status: Optional[str] = None,
+    lead_type: Optional[str] = None,
+    _: bool = Depends(require_admin)
+):
+    """Export leads as CSV (admin only)"""
+    coll = get_leads_collection()
+    
+    query = {}
+    if status:
+        query["status"] = status
+    if lead_type:
+        query["lead_type"] = lead_type
+    
+    docs = await coll.find(query).sort("created_at", -1).to_list(5000)
+    
+    def generate():
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Header row
+        writer.writerow([
+            "created_at", "lead_type", "status", "first_name", "last_name",
+            "phone", "email", "year", "make", "model", "trim", "vin",
+            "stock_number", "assigned_to", "notes_count", "source", "message"
+        ])
+        yield output.getvalue()
+        output.seek(0)
+        output.truncate(0)
+        
+        # Data rows
+        for d in docs:
+            created = d.get("created_at")
+            if created:
+                created = created.strftime("%Y-%m-%d %H:%M:%S") if hasattr(created, 'strftime') else str(created)
+            
+            writer.writerow([
+                created,
+                d.get("lead_type"),
+                d.get("status"),
+                d.get("first_name"),
+                d.get("last_name"),
+                d.get("phone"),
+                d.get("email"),
+                d.get("year"),
+                d.get("make"),
+                d.get("model"),
+                d.get("trim"),
+                d.get("vin"),
+                d.get("stock_number"),
+                d.get("assigned_to"),
+                len(d.get("notes", [])),
+                d.get("source"),
+                d.get("message", "")[:100] if d.get("message") else "",
+            ])
+            yield output.getvalue()
+            output.seek(0)
+            output.truncate(0)
+    
+    headers = {"Content-Disposition": "attachment; filename=choosemeauto-leads.csv"}
+    return StreamingResponse(generate(), media_type="text/csv", headers=headers)
+
+
+@router.get("/leads/stats/summary")
+async def get_leads_stats(_: bool = Depends(require_admin)):
+    """Get lead statistics (admin only)"""
+    coll = get_leads_collection()
+    
+    total = await coll.count_documents({})
+    new_count = await coll.count_documents({"status": "new"})
+    
+    # Count by type
+    pipeline = [
+        {"$group": {"_id": "$lead_type", "count": {"$sum": 1}}}
+    ]
+    type_counts = {}
+    async for doc in coll.aggregate(pipeline):
+        type_counts[doc["_id"] or "unknown"] = doc["count"]
+    
+    # Count by status
+    status_pipeline = [
+        {"$group": {"_id": "$status", "count": {"$sum": 1}}}
+    ]
+    status_counts = {}
+    async for doc in coll.aggregate(status_pipeline):
+        status_counts[doc["_id"] or "unknown"] = doc["count"]
+    
+    return {
+        "total": total,
+        "new": new_count,
+        "by_type": type_counts,
+        "by_status": status_counts
+    }
 
 
 @router.get("/leads/{lead_id}", response_model=LeadOut)
@@ -291,15 +428,98 @@ async def update_lead_status(
     if not doc:
         raise HTTPException(status_code=404, detail="Lead not found")
     
+    old_status = doc.get("status", "new")
+    new_status = update.status
+    
+    update_fields = {
+        "status": new_status,
+        "updated_at": datetime.now(timezone.utc)
+    }
+    
+    # Update last_contacted_at if status is being changed to "contacted"
+    if new_status == "contacted" and old_status != "contacted":
+        update_fields["last_contacted_at"] = datetime.now(timezone.utc)
+    
     await coll.update_one(
         {"_id": ObjectId(lead_id)},
-        {"$set": {"status": update.status, "updated_at": datetime.now(timezone.utc)}}
+        {"$set": update_fields}
     )
     
     updated = await coll.find_one({"_id": ObjectId(lead_id)})
-    logger.info(f"📝 Lead {lead_id} status updated to: {update.status}")
+    logger.info(f"📝 Lead {lead_id} status updated: {old_status} → {new_status}")
+    
+    # Send status change alert
+    if old_status != new_status:
+        try:
+            notify_status_change(updated, old_status, new_status)
+        except Exception as e:
+            logger.warning(f"⚠️ Alert error: {str(e)}")
     
     return serialize_lead(updated)
+
+
+@router.patch("/leads/{lead_id}/assign", response_model=LeadOut)
+async def assign_lead(
+    lead_id: str,
+    assignment: AssignmentUpdate,
+    _: bool = Depends(require_admin)
+):
+    """Assign a lead to a team member (admin only)"""
+    coll = get_leads_collection()
+    
+    try:
+        doc = await coll.find_one({"_id": ObjectId(lead_id)})
+    except:
+        raise HTTPException(status_code=400, detail="Invalid lead ID")
+    
+    if not doc:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    await coll.update_one(
+        {"_id": ObjectId(lead_id)},
+        {"$set": {"assigned_to": assignment.assigned_to, "updated_at": datetime.now(timezone.utc)}}
+    )
+    
+    updated = await coll.find_one({"_id": ObjectId(lead_id)})
+    logger.info(f"👤 Lead {lead_id} assigned to: {assignment.assigned_to}")
+    
+    return serialize_lead(updated)
+
+
+@router.post("/leads/{lead_id}/notes")
+async def add_note(
+    lead_id: str,
+    note: NoteCreate,
+    _: bool = Depends(require_admin)
+):
+    """Add a note to a lead (admin only)"""
+    coll = get_leads_collection()
+    
+    try:
+        doc = await coll.find_one({"_id": ObjectId(lead_id)})
+    except:
+        raise HTTPException(status_code=400, detail="Invalid lead ID")
+    
+    if not doc:
+        raise HTTPException(status_code=404, detail="Lead not found")
+    
+    note_doc = {
+        "at": datetime.now(timezone.utc),
+        "by": note.by,
+        "text": note.text
+    }
+    
+    await coll.update_one(
+        {"_id": ObjectId(lead_id)},
+        {
+            "$push": {"notes": note_doc},
+            "$set": {"updated_at": datetime.now(timezone.utc)}
+        }
+    )
+    
+    logger.info(f"📝 Note added to lead {lead_id} by {note.by}")
+    
+    return {"ok": True, "note": note_doc}
 
 
 @router.delete("/leads/{lead_id}")
@@ -317,29 +537,6 @@ async def delete_lead(lead_id: str, _: bool = Depends(require_admin)):
     
     logger.info(f"🗑️ Lead {lead_id} deleted")
     return {"message": "Lead deleted successfully"}
-
-
-@router.get("/leads/stats/summary")
-async def get_leads_stats(_: bool = Depends(require_admin)):
-    """Get lead statistics (admin only)"""
-    coll = get_leads_collection()
-    
-    total = await coll.count_documents({})
-    new_count = await coll.count_documents({"status": "new"})
-    
-    # Count by type
-    pipeline = [
-        {"$group": {"_id": "$lead_type", "count": {"$sum": 1}}}
-    ]
-    type_counts = {}
-    async for doc in coll.aggregate(pipeline):
-        type_counts[doc["_id"] or "unknown"] = doc["count"]
-    
-    return {
-        "total": total,
-        "new": new_count,
-        "by_type": type_counts
-    }
 
 
 # Legacy endpoint for backward compatibility

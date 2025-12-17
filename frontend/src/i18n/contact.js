@@ -24,12 +24,12 @@ export const contactCopy = {
     es: "¡Gracias por contactarnos! Hemos recibido tu mensaje y te responderemos dentro de 24 horas.",
   },
   sideTitle: {
-    en: "Choose Me Auto - Renton",
-    es: "Choose Me Auto - Renton",
+    en: "Choose Me Auto",
+    es: "Choose Me Auto",
   },
   sideDesc: {
-    en: "Located at Good Chevrolet in Renton, Washington. We specialize in helping customers with bad credit, no credit, and first-time buyers.",
-    es: "Ubicados en Good Chevrolet en Renton, Washington. Nos especializamos en ayudar a clientes con crédito malo, sin crédito y compradores primerizos.",
+    en: "We specialize in helping customers with bad credit, no credit, and first-time buyers get the vehicle they deserve.",
+    es: "Nos especializamos en ayudar a clientes con crédito malo, sin crédito y compradores primerizos a obtener el vehículo que merecen.",
   },
   hours: {
     en: "Monday - Saturday: 9:00 AM - 7:00 PM\nSunday: 10:00 AM - 6:00 PM",

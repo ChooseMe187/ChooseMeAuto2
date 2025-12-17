@@ -295,14 +295,7 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "MongoDB Lead Storage - Pre-Approval Form Submission"
-    - "Admin Leads Page - Default Tab and Navigation"
-    - "Admin Leads Page - Stats Cards Display"
-    - "Admin Leads Page - Filter Dropdowns"
-    - "Admin Leads Page - Leads Table Display"
-    - "Admin Leads Page - Status Update Functionality"
-    - "Lead Persistence - MongoDB Storage"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"

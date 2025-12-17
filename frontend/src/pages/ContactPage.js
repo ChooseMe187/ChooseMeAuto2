@@ -124,7 +124,7 @@ const ContactPage = () => {
             <p className="cma-contact-line">
               <strong>{formsCopy.addressLabel[lang]}:</strong>
               <br />
-              Good Chevrolet Renton
+              Choose Me Auto
               <br />
               Renton, WA 98057
             </p>

@@ -24,8 +24,8 @@ export const preapprovalCopy = {
     es: "Paso 2: Completa la Solicitud Segura del Banco",
   },
   step2Desc: {
-    en: "After you submit your info, click below to finish the official pre-approval on Good Chevrolet's secure finance page.",
-    es: "Después de enviar tu información, haz clic abajo para completar la pre-aprobación oficial en la página segura de Good Chevrolet.",
+    en: "After you submit your info, click below to finish the official pre-approval on the secure finance page.",
+    es: "Después de enviar tu información, haz clic abajo para completar la pre-aprobación oficial en la página segura de financiamiento.",
   },
   continueBtn: {
     en: "Continue to Full Pre-Approval Application",

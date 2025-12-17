@@ -1,0 +1,7 @@
+created_at,lead_type,status,first_name,last_name,phone,email,year,make,model,trim,vin,stock_number,assigned_to,notes_count,source,message
+2025-12-17 22:40:37,pre_approval,new,Valid,User,2065559999,valid@test.com,,,,,,,Jay,1,test,
+2025-12-17 22:39:31,contact,qualified,QA,Contact,2065551003,qa.contact@test.com,,,,,,,,0,contact-page,QA test message for contact form
+2025-12-17 22:39:31,test_drive,new,QA,TestDrive,2065551002,qa.testdrive@test.com,,,,,,P57802,,0,test-drive-page,
+2025-12-17 22:39:31,pre_approval,new,QA,PreApproval,2065551001,qa.preapproval@test.com,,,,,,P57801,Jay,1,preapproved-page,
+2025-12-17 22:30:26,pre_approval,contacted,Test,User,5551234567,test@example.com,,,,,,,,0,testing,
+2025-12-17 22:26:34,pre_approval,new,John,Doe,2065551234,john@example.com,,,,,,P57801,,0,preapproved-page,

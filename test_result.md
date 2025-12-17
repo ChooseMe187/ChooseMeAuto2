@@ -390,6 +390,90 @@ test_plan:
         agent: "testing"
         comment: "✅ VERIFIED: Backend admin API fully functional. Login endpoint returns success with token for correct password (chooseme2024). Admin vehicles endpoint returns existing vehicle data with proper authentication. Backend logs show successful vehicle creation. All CRUD operations and authentication middleware working correctly."
 
+  - task: "MongoDB Lead Storage - Pre-Approval Form Submission"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/PreApprovalPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Pre-approval form submits to /api/vehicle-leads endpoint with MongoDB storage. Form includes firstName, lastName, phone, email, stockNumber fields. Success enables Good Chev button."
+
+  - task: "Admin Leads Page - Default Tab and Navigation"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Admin layout defaults to 'leads' tab. Navigation includes 📩 Leads and 🚗 Vehicles tabs. AdminLeadsPage component implemented with full functionality."
+
+  - task: "Admin Leads Page - Stats Cards Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Stats cards show Total Leads, New Leads, Pre-Approvals, Test Drives. Data fetched from /api/leads/stats/summary endpoint."
+
+  - task: "Admin Leads Page - Filter Dropdowns"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Filter dropdowns for Status (New, Contacted, Qualified, Converted, Lost) and Type (Pre-Approval, Test Drive, Contact, Availability) implemented."
+
+  - task: "Admin Leads Page - Leads Table Display"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Leads table with columns: Date, Type, Name, Contact, Vehicle, Status, Actions. Shows submitted leads with proper formatting and badges."
+
+  - task: "Admin Leads Page - Status Update Functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/admin/AdminLeadsPage.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Status dropdown in table allows changing lead status from 'New' to 'Contacted', etc. Updates via PATCH /api/leads/{id} endpoint."
+
+  - task: "Lead Persistence - MongoDB Storage"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/routes/leads.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Leads stored in MongoDB 'leads' collection. Backend API includes CRUD operations, authentication, and proper data serialization."
+
 agent_communication:
   - agent: "main"
     message: "Implemented P0 (remove Emergent branding) and P1 (add credit badges). Need UI verification for: 1) Browser tab title shows 'Choose Me Auto', 2) No 'Made with Emergent' badge visible in bottom right, 3) Navbar shows two pill badges '✓ Bad Credit OK' and '✓ No Credit OK' on desktop, 4) Mobile view shows stacked badges, 5) /vehicles page shows 2023 Honda Accord card, 6) Pre-Approval page shows credit banner"
@@ -403,6 +487,8 @@ agent_communication:
     message: "Implemented complete Admin Panel for Choose Me Auto website. Features: 1) Admin login page with password authentication (chooseme2024), 2) Admin vehicles dashboard with Vehicle Inventory header, Add Vehicle and Logout buttons, 3) Add Vehicle form modal with sections for Basic Information, Pricing & Details, and Photos & Media, 4) Vehicle table displaying Photo, Vehicle, Stock #, VIN, Price, Mileage, Condition, and Actions columns with edit/delete buttons, 5) Backend API with admin authentication, CRUD operations, and photo upload functionality. All admin routes protected with token authentication."
   - agent: "testing"
     message: "✅ COMPREHENSIVE ADMIN PANEL TESTING COMPLETE: All admin panel functionality successfully verified. Login page works with correct error handling for wrong passwords and successful authentication with 'chooseme2024'. Admin dashboard displays properly with Vehicle Inventory header, vehicle count badge, Add Vehicle and Logout buttons. Add Vehicle modal opens with all three required sections (Basic Information, Pricing & Details, Photos & Media) and accepts form input. Vehicle table displays correctly with all required columns and action buttons (edit ✏️ and delete 🗑️). Backend API integration confirmed working with proper authentication and CRUD operations. Logout functionality returns to login page. All requested test flows from the review request successfully completed. Minor improvement needed: form submission success/error message display."
+  - agent: "main"
+    message: "Implemented MongoDB-backed lead storage system and Admin Leads page. Features: 1) Pre-approval form submits to /api/vehicle-leads with MongoDB storage, 2) Admin panel defaults to Leads tab with navigation between Leads and Vehicles, 3) Admin Leads page with stats cards (Total, New, Pre-Approvals, Test Drives), 4) Filter dropdowns for Status and Type, 5) Leads table displaying Date, Type, Name, Contact, Vehicle, Status columns, 6) Status update functionality via dropdown, 7) Lead persistence in MongoDB with proper CRUD operations. All endpoints protected with admin authentication."
 
 # 2. Incorporate User Feedback:
 #    - When a user provides feedback that something is or isn't working, add this information to the relevant task's status_history

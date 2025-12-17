@@ -1,10 +1,28 @@
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, Literal
+from typing import Optional, Literal, List
 
 
 LeadType = Literal["pre_approval", "test_drive", "contact", "availability"]
 LeadStatus = Literal["new", "contacted", "qualified", "converted", "lost"]
+
+
+class LeadNote(BaseModel):
+    """Model for a lead note"""
+    at: datetime
+    by: str
+    text: str
+
+
+class NoteCreate(BaseModel):
+    """Model for creating a new note"""
+    text: str
+    by: str = "admin"
+
+
+class AssignmentUpdate(BaseModel):
+    """Model for assigning a lead"""
+    assigned_to: str
 
 
 class LeadCreate(BaseModel):
@@ -62,6 +80,11 @@ class LeadOut(BaseModel):
     
     source_url: Optional[str] = None
     source: Optional[str] = None
+    
+    # New fields for notes + assignment
+    assigned_to: Optional[str] = None
+    notes: List[LeadNote] = []
+    last_contacted_at: Optional[datetime] = None
     
     created_at: datetime
     updated_at: datetime

@@ -5,7 +5,7 @@ import VehicleTable from "../../components/admin/VehicleTable";
 import "../../styles/admin.css";
 
 const AdminVehiclesPage = () => {
-  const { token, logout } = useAdminAuth();
+  const { token } = useAdminAuth();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -66,14 +66,13 @@ const AdminVehiclesPage = () => {
   };
 
   return (
-    <div className="admin-page">
-      {/* Header */}
-      <div className="admin-header">
-        <div className="admin-header-left">
-          <h1>Vehicle Inventory</h1>
-          <span className="admin-vehicle-count">{vehicles.length} vehicles</span>
+    <div className="admin-vehicles-page">
+      {/* Sub-header for vehicles */}
+      <div className="admin-subheader">
+        <div className="admin-subheader-left">
+          <span className="admin-vehicle-count">{vehicles.length} vehicles in inventory</span>
         </div>
-        <div className="admin-header-right">
+        <div className="admin-subheader-right">
           <button
             onClick={() => {
               setEditingVehicle(null);
@@ -82,9 +81,6 @@ const AdminVehiclesPage = () => {
             className="admin-btn-primary"
           >
             + Add Vehicle
-          </button>
-          <button onClick={logout} className="admin-btn-secondary">
-            Logout
           </button>
         </div>
       </div>
@@ -107,27 +103,25 @@ const AdminVehiclesPage = () => {
       )}
 
       {/* Vehicle Table */}
-      <div className="admin-content">
-        {loading ? (
-          <div className="admin-loading">Loading vehicles...</div>
-        ) : vehicles.length === 0 ? (
-          <div className="admin-empty">
-            <p>No vehicles in inventory yet.</p>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="admin-btn-primary"
-            >
-              Add Your First Vehicle
-            </button>
-          </div>
-        ) : (
-          <VehicleTable
-            vehicles={vehicles}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        )}
-      </div>
+      {loading ? (
+        <div className="admin-loading">Loading vehicles...</div>
+      ) : vehicles.length === 0 ? (
+        <div className="admin-empty">
+          <p>No vehicles in inventory yet.</p>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="admin-btn-primary"
+          >
+            Add Your First Vehicle
+          </button>
+        </div>
+      ) : (
+        <VehicleTable
+          vehicles={vehicles}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 };

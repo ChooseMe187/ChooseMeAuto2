@@ -132,10 +132,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Vehicle API with New Fields"
-    - "Admin Vehicle Management APIs"
-    - "Lead Submission APIs"
-  stuck_tasks: []
+    - "i18n for new features"
+  stuck_tasks: 
+    - "i18n for new features"
   test_all: false
   test_priority: "high_first"
 

@@ -312,7 +312,47 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
           </div>
         </div>
 
-        {/* Section 3: Photos */}
+        {/* Section 3: Documents & CTAs */}
+        <div className="admin-form-section">
+          <h3>Documents & CTAs</h3>
+          <div className="admin-form-grid-2">
+            <div className="admin-field">
+              <label>CARFAX URL</label>
+              <input
+                type="url"
+                value={carfaxUrl}
+                onChange={(e) => setCarfaxUrl(e.target.value)}
+                placeholder="https://www.carfax.com/..."
+              />
+              <span className="admin-field-hint">Leave empty if not available</span>
+            </div>
+            <div className="admin-field">
+              <label>Window Sticker URL (PDF)</label>
+              <input
+                type="url"
+                value={windowStickerUrl}
+                onChange={(e) => setWindowStickerUrl(e.target.value)}
+                placeholder="https://..."
+              />
+              <span className="admin-field-hint">Allowed for New and Used vehicles</span>
+            </div>
+          </div>
+          
+          <div className="admin-field admin-toggle-field">
+            <label className="admin-toggle-label">
+              <input
+                type="checkbox"
+                checked={callForAvailabilityEnabled}
+                onChange={(e) => setCallForAvailabilityEnabled(e.target.checked)}
+              />
+              <span className="admin-toggle-slider"></span>
+              <span className="admin-toggle-text">Enable "Call for Availability" CTA</span>
+            </label>
+            <span className="admin-field-hint">When enabled, shows a prominent call-to-action on the vehicle detail page</span>
+          </div>
+        </div>
+
+        {/* Section 4: Photos */}
         <div className="admin-form-section">
           <h3>Photos & Media</h3>
           

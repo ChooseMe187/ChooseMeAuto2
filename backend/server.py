@@ -103,14 +103,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Load inventory on startup
-@app.on_event("startup")
-def startup_event():
-    """Load inventory from CSV when the app starts"""
-    logger.info("Loading vehicle inventory from CSV...")
-    load_inventory_from_csv()
-    logger.info("✅ Vehicle inventory loaded successfully")
-
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

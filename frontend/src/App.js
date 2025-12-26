@@ -46,6 +46,12 @@ function App() {
                     element={<VehiclesPage initialFilters={{ condition: "Used" }} />} 
                   />
                   
+                  {/* New vehicles */}
+                  <Route 
+                    path="/new" 
+                    element={<VehiclesPage initialFilters={{ condition: "New" }} />} 
+                  />
+                  
                   {/* Forms */}
                   <Route path="/preapproved" element={<PreApprovalPage />} />
                   <Route path="/contact" element={<ContactPage />} />

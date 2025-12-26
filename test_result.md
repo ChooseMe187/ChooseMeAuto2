@@ -1,11 +1,46 @@
 # Test Result File
 
-## Current Test Plan
+backend:
+  - task: "Vehicle API with New Fields"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/vehicles.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "All vehicle API endpoints working correctly. GET /api/vehicles returns all vehicles with new fields (carfax_url, window_sticker_url, call_for_availability_enabled). Condition filtering works properly for New/Used vehicles. Individual vehicle details API returns complete data."
 
-test_plan:
+  - task: "Admin Vehicle Management APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/admin_vehicles.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Admin vehicle CRUD operations fully functional. POST /api/admin/vehicles creates vehicles with all new fields. PATCH /api/admin/vehicles/{id} updates all fields correctly. Authentication with admin token working properly."
+
+  - task: "Lead Submission APIs"
+    implemented: true
+    working: true
+    file: "/app/backend/routes/leads.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Lead submission endpoints working correctly. Both POST /api/vehicle-leads/availability (legacy) and POST /api/vehicle-leads (form) create leads with lead_type='availability'. Leads are properly stored in MongoDB and retrievable via admin API."
+
+frontend:
   - task: "New Vehicles Section (P0)"
     implemented: true
-    working: pending
+    working: "NA"
     file: "/app/frontend/src/pages/VehiclesPage.js"
     stuck_count: 0
     priority: "high"
@@ -18,7 +53,7 @@ test_plan:
 
   - task: "Document Buttons (CARFAX & Window Sticker)"
     implemented: true
-    working: pending
+    working: "NA"
     file: "/app/frontend/src/pages/VehicleDetailPage.js"
     stuck_count: 0
     priority: "high"
@@ -31,7 +66,7 @@ test_plan:
 
   - task: "Call for Availability CTA (P1)"
     implemented: true
-    working: pending
+    working: "NA"
     file: "/app/frontend/src/pages/VehicleDetailPage.js"
     stuck_count: 0
     priority: "high"
@@ -45,7 +80,7 @@ test_plan:
 
   - task: "Admin Vehicle Form - New Fields"
     implemented: true
-    working: pending
+    working: "NA"
     file: "/app/frontend/src/components/admin/AddVehicleForm.js"
     stuck_count: 0
     priority: "high"
@@ -59,7 +94,7 @@ test_plan:
 
   - task: "i18n for new features"
     implemented: true
-    working: pending
+    working: "NA"
     file: "/app/frontend/src/i18n/vehicleDetail.js"
     stuck_count: 0
     priority: "medium"
@@ -68,6 +103,25 @@ test_plan:
       - "Verify document buttons show Spanish translations"
       - "Verify CTA buttons show Spanish translations"
       - "Verify navbar shows 'Nuevos' in Spanish mode"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Vehicle API with New Fields"
+    - "Admin Vehicle Management APIs"
+    - "Lead Submission APIs"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "Backend testing completed successfully. All 10 backend API tests passed including: vehicle listing with new fields, condition filtering (New/Used), individual vehicle details, admin CRUD operations, and lead submission with availability type. All new fields (carfax_url, window_sticker_url, call_for_availability_enabled) are properly implemented and working. Test data confirmed: New vehicle (CMAEE34F7) has all document URLs and CTA enabled, Used vehicle (CMA5A1BBF) has CTA disabled as expected."
 
 ## Admin Credentials
 - URL: /admin

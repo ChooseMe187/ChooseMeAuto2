@@ -4,7 +4,7 @@ Hi Emergent Support,
 
 I'm testing my Choose Me Auto dealer inventory app, and everything works correctly in my local environment, but vehicles are not displaying on the preview URL.
 
-Preview URL: https://autoleads-1.preview.emergentagent.com/
+Preview URL: https://autodealership.preview.emergentagent.com/
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -37,8 +37,8 @@ On the preview URL, vehicles do not render. This appears to be a deployment/rout
 
 Test these endpoints from your environment:
 
-    curl https://autoleads-1.preview.emergentagent.com/api/vehicles
-    curl https://autoleads-1.preview.emergentagent.com/api/vehicles/P57801
+    curl https://autodealership.preview.emergentagent.com/api/vehicles
+    curl https://autodealership.preview.emergentagent.com/api/vehicles/P57801
 
 Expected: JSON response with vehicle data including stock_id, year, make, model, image_url, image_urls fields.
 
@@ -50,7 +50,7 @@ If 404 or 500: /api/* routes are not correctly proxied to the FastAPI backend (p
 
 Test image accessibility:
 
-    curl -I https://autoleads-1.preview.emergentagent.com/vehicles/P57801_1.jpg
+    curl -I https://autodealership.preview.emergentagent.com/vehicles/P57801_1.jpg
 
 Expected: HTTP 200 OK with Content-Type: image/jpeg
 
@@ -81,7 +81,7 @@ On the preview site, open DevTools → Network tab.
 Filter by XHR/Fetch requests.
 
 You should see requests to:
-    https://autoleads-1.preview.emergentagent.com/api/vehicles
+    https://autodealership.preview.emergentagent.com/api/vehicles
 
 If you see requests to http://localhost:8001/...:
     The frontend is not using the correct production API base URL.
@@ -95,7 +95,7 @@ When correctly configured:
 ✅ GET /api/vehicles returns all 112 vehicles with image_url and image_urls
 ✅ /vehicles page shows all vehicles with real photos
 ✅ /vehicle/P57801 shows full detail + image gallery
-✅ All images served from https://autoleads-1.preview.emergentagent.com/vehicles/...
+✅ All images served from https://autodealership.preview.emergentagent.com/vehicles/...
 ✅ No image URLs point to GoodChev or any external host
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

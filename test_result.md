@@ -142,6 +142,8 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "Backend testing completed successfully. All 10 backend API tests passed including: vehicle listing with new fields, condition filtering (New/Used), individual vehicle details, admin CRUD operations, and lead submission with availability type. All new fields (carfax_url, window_sticker_url, call_for_availability_enabled) are properly implemented and working. Test data confirmed: New vehicle (CMAEE34F7) has all document URLs and CTA enabled, Used vehicle (CMA5A1BBF) has CTA disabled as expected."
+  - agent: "testing"
+    message: "Frontend testing completed. CRITICAL ISSUE FOUND: Spanish translations not working on vehicle detail pages. All other features working correctly: New vehicles section shows proper filtering, document buttons work with correct fallbacks, Call for Availability CTA works in both desktop/mobile modes, admin form has all new fields. Only i18n translations failing - buttons show English text even in Spanish mode."
 
 ## Admin Credentials
 - URL: /admin

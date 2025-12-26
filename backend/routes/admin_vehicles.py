@@ -122,8 +122,8 @@ async def create_vehicle(payload: VehicleCreate, _: bool = Depends(require_admin
 async def list_vehicles(_: bool = Depends(require_admin)):
     """List all vehicles in admin inventory"""
     coll = get_vehicles_collection()
-    cursor = coll.find({}).sort("created_at", -1)
-    vehicles = await cursor.to_list(1000)
+    cursor = coll.find({}).sort("created_at", -1).limit(500)
+    vehicles = await cursor.to_list(500)
     return [serialize_vehicle(v) for v in vehicles]
 
 

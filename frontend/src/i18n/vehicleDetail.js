@@ -127,4 +127,48 @@ export const vehicleDetailCopy = {
     en: "Stock",
     es: "Inventario",
   },
+  viewCarfax: {
+    en: "View CARFAX",
+    es: "Ver CARFAX",
+  },
+  viewWindowSticker: {
+    en: "View Window Sticker",
+    es: "Ver Etiqueta de Ventana",
+  },
+  carfaxOnRequest: {
+    en: "CARFAX available on request",
+    es: "CARFAX disponible bajo solicitud",
+  },
+  callNow: {
+    en: "Call Now",
+    es: "Llama Ahora",
+  },
+  requestAvailability: {
+    en: "Request Availability",
+    es: "Solicitar Disponibilidad",
+  },
+  scheduleTestDrive: {
+    en: "Schedule Test Drive",
+    es: "Agenda una Prueba de Manejo",
+  },
+  callForPrice: {
+    en: "Call for price",
+    es: "Llama para precio",
+  },
+  milesNA: {
+    en: "Miles N/A",
+    es: "Millas N/D",
+  },
+  na: {
+    en: "N/A",
+    es: "N/D",
+  },
+  backToVehicles: {
+    en: "← Back to all vehicles",
+    es: "← Volver a todos los vehículos",
+  },
+  photosComingSoon: {
+    en: "Photos coming soon. This vehicle currently has no images in the inventory file.",
+    es: "Fotos próximamente. Este vehículo actualmente no tiene imágenes en el archivo de inventario.",
+  },
 };

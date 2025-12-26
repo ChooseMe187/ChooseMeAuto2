@@ -40,11 +40,15 @@ backend:
 frontend:
   - task: "New Vehicles Section (P0)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/VehiclesPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "All functionality working correctly. /new route shows only New vehicles (1 vehicle: 2025 Honda Accord). 'New' link visible in navbar. Filter indicator 'Showing New vehicles only. Clear filter' displays properly. Navigation and filtering work as expected."
     test_scenarios:
       - "Verify /new route shows only vehicles with condition='New'"
       - "Verify 'New' link appears in navbar"
@@ -53,11 +57,15 @@ frontend:
 
   - task: "Document Buttons (CARFAX & Window Sticker)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/VehicleDetailPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Document buttons working perfectly. On 2025 Honda Accord (CMAEE34F7): 'View Window Sticker' and 'View CARFAX' buttons present and open in new tabs. On 2023 Toyota Camry (CMA5A1BBF): 'CARFAX available on request' fallback text shown, no Window Sticker button (as expected)."
     test_scenarios:
       - "Verify 'View Window Sticker' button appears when window_sticker_url exists"
       - "Verify 'View CARFAX' button appears when carfax_url exists"
@@ -66,11 +74,15 @@ frontend:
 
   - task: "Call for Availability CTA (P1)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/VehicleDetailPage.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Call for Availability CTA working correctly. On 2025 Honda Accord (enabled): Desktop shows popup modal with all form fields (First Name, Last Name, Phone, Email, Message). Mobile shows both 'Call Now: (206) 786-1751' click-to-call and 'Request Availability' buttons. On 2023 Toyota Camry (disabled): Shows inline form at bottom of page."
     test_scenarios:
       - "Verify CTA toggle in admin form works"
       - "When enabled: Desktop shows popup form on click"
@@ -80,11 +92,15 @@ frontend:
 
   - task: "Admin Vehicle Form - New Fields"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/components/admin/AddVehicleForm.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Admin form new fields working correctly. Condition dropdown has 'Used' and 'New' options. CARFAX URL field present. Window Sticker URL (PDF) field present. 'Enable Call for Availability CTA' toggle switch present and functional. All new fields properly integrated into form."
     test_scenarios:
       - "Verify condition dropdown shows New/Used options"
       - "Verify CARFAX URL field exists"
@@ -94,11 +110,15 @@ frontend:
 
   - task: "i18n for new features"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/i18n/vehicleDetail.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Spanish translations NOT working. Navbar correctly shows 'Nuevos' in Spanish mode, but vehicle detail page buttons still display English text: 'View Window Sticker', 'View CARFAX', 'Schedule Test Drive', 'Call For Availability & Price' instead of Spanish translations. Language context not being applied to vehicle detail components."
     test_scenarios:
       - "Verify document buttons show Spanish translations"
       - "Verify CTA buttons show Spanish translations"

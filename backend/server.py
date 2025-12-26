@@ -85,6 +85,9 @@ set_admin_db(db)
 # Set database for leads routes
 set_leads_db(db)
 
+# Set database for vehicles routes
+set_vehicles_db(db)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

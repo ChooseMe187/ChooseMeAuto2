@@ -186,6 +186,7 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
               <label>Condition *</label>
               <select value={condition} onChange={(e) => setCondition(e.target.value)}>
                 <option value="Used">Used</option>
+                <option value="New">New</option>
               </select>
             </div>
           </div>

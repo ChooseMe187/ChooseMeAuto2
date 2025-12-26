@@ -73,6 +73,9 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
         transmission: transmission || null,
         drivetrain: drivetrain || null,
         engine: engine || null,
+        carfax_url: carfaxUrl || null,
+        window_sticker_url: windowStickerUrl || null,
+        call_for_availability_enabled: callForAvailabilityEnabled,
       };
 
       let vehicleId = editingVehicle?.id;

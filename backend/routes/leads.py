@@ -293,8 +293,28 @@ async def list_all_leads(
     if assigned_to:
         query["assigned_to"] = assigned_to
     
-    cursor = coll.find(query).sort("created_at", -1)
-    docs = await cursor.to_list(500)
+    # Projection for required fields
+    projection = {
+        "_id": 1,
+        "lead_type": 1,
+        "status": 1,
+        "first_name": 1,
+        "last_name": 1,
+        "email": 1,
+        "phone": 1,
+        "vehicle_id": 1,
+        "stock_number": 1,
+        "assigned_to": 1,
+        "notes": 1,
+        "source": 1,
+        "message": 1,
+        "created_at": 1,
+        "updated_at": 1,
+        "last_contacted_at": 1,
+    }
+    
+    cursor = coll.find(query, projection).sort("created_at", -1).limit(300)
+    docs = await cursor.to_list(300)
     
     return [serialize_lead(d) for d in docs]
 

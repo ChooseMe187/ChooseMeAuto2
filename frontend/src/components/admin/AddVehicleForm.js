@@ -21,6 +21,13 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
   const [transmission, setTransmission] = useState(editingVehicle?.transmission || "");
   const [drivetrain, setDrivetrain] = useState(editingVehicle?.drivetrain || "");
   const [engine, setEngine] = useState(editingVehicle?.engine || "");
+  
+  // New fields
+  const [carfaxUrl, setCarfaxUrl] = useState(editingVehicle?.carfax_url || "");
+  const [windowStickerUrl, setWindowStickerUrl] = useState(editingVehicle?.window_sticker_url || "");
+  const [callForAvailabilityEnabled, setCallForAvailabilityEnabled] = useState(
+    editingVehicle?.call_for_availability_enabled || false
+  );
 
   const [files, setFiles] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState(editingVehicle?.photo_urls || []);

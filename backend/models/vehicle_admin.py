@@ -24,6 +24,13 @@ class VehicleCreate(BaseModel):
     drivetrain: Optional[str] = None
     engine: Optional[str] = None
     
+    # Document URLs
+    carfax_url: Optional[str] = None
+    window_sticker_url: Optional[str] = None
+    
+    # Call for Availability toggle
+    call_for_availability_enabled: bool = False
+    
     is_featured: bool = False
     is_active: bool = True
 
@@ -48,6 +55,13 @@ class VehicleUpdate(BaseModel):
     transmission: Optional[str] = None
     drivetrain: Optional[str] = None
     engine: Optional[str] = None
+    
+    # Document URLs
+    carfax_url: Optional[str] = None
+    window_sticker_url: Optional[str] = None
+    
+    # Call for Availability toggle
+    call_for_availability_enabled: Optional[bool] = None
     
     is_featured: Optional[bool] = None
     is_active: Optional[bool] = None
@@ -74,6 +88,13 @@ class VehicleInDB(BaseModel):
     transmission: Optional[str] = None
     drivetrain: Optional[str] = None
     engine: Optional[str] = None
+    
+    # Document URLs
+    carfax_url: Optional[str] = None
+    window_sticker_url: Optional[str] = None
+    
+    # Call for Availability toggle
+    call_for_availability_enabled: bool = False
     
     is_featured: bool = False
     is_active: bool = True

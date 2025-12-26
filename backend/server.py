@@ -17,10 +17,9 @@ import uuid
 from datetime import datetime, timezone
 
 # Import routers and services AFTER loading env
-from routes.vehicles import router as vehicles_router
+from routes.vehicles import router as vehicles_router, set_db as set_vehicles_db
 from routes.leads import router as leads_router, set_db as set_leads_db
 from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
-from services.inventory_loader import load_inventory_from_csv
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']

@@ -23,4 +23,12 @@ class Vehicle(BaseModel):
 
     # Image fields
     image_url: Optional[str] = None      # Main Image URL
-    image_urls: List[str] = []            # Additional images (2-5)
+    image_urls: List[str] = []           # Additional images (2-5)
+    photo_urls: List[str] = []           # Admin-uploaded photos
+    
+    # Document URLs
+    carfax_url: Optional[str] = None
+    window_sticker_url: Optional[str] = None
+    
+    # Call for Availability toggle
+    call_for_availability_enabled: bool = False

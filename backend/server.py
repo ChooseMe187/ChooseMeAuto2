@@ -16,18 +16,35 @@ from typing import List
 import uuid
 from datetime import datetime, timezone
 
+# Configure logging early
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
 # Import routers and services AFTER loading env
 from routes.vehicles import router as vehicles_router, set_db as set_vehicles_db
 from routes.leads import router as leads_router, set_db as set_leads_db
 from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# MongoDB connection with error handling
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
+db_name = os.environ.get('DB_NAME', 'test_database')
+
+logger.info(f"Connecting to MongoDB at: {mongo_url[:30]}...")
+logger.info(f"Using database: {db_name}")
+
+try:
+    client = AsyncIOMotorClient(mongo_url, serverSelectionTimeoutMS=5000)
+    db = client[db_name]
+    logger.info("MongoDB client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize MongoDB client: {e}")
+    raise
 
 # Create the main app without a prefix
-app = FastAPI()
+app = FastAPI(title="Choose Me Auto API", version="1.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
@@ -44,10 +61,41 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+
+# Health check endpoint - CRITICAL for Kubernetes
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Kubernetes liveness/readiness probes"""
+    try:
+        # Try to ping MongoDB to verify connection
+        await client.admin.command('ping')
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+
+# Root health check (backup)
+@app.get("/")
+async def root_health():
+    """Root endpoint - also used for health checks"""
+    return {"status": "ok", "service": "Choose Me Auto API"}
+
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
+async def api_root():
+    return {"message": "Choose Me Auto API", "version": "1.0.0"}
+
 
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
@@ -61,6 +109,7 @@ async def create_status_check(input: StatusCheckCreate):
     _ = await db.status_checks.insert_one(doc)
     return status_obj
 
+
 @api_router.get("/status", response_model=List[StatusCheck])
 async def get_status_checks():
     # Exclude MongoDB's _id field from the query results
@@ -72,6 +121,7 @@ async def get_status_checks():
             check['timestamp'] = datetime.fromisoformat(check['timestamp'])
     
     return status_checks
+
 
 # Include the routers in the main app
 app.include_router(api_router)
@@ -96,13 +146,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+
+@app.on_event("startup")
+async def startup_event():
+    """Application startup - verify MongoDB connection"""
+    logger.info("Application starting up...")
+    try:
+        await client.admin.command('ping')
+        logger.info("✅ MongoDB connection verified")
+    except Exception as e:
+        logger.warning(f"⚠️ MongoDB ping failed on startup: {e}")
+        # Don't crash - let the health check handle it
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """Clean shutdown - close MongoDB connection"""
+    logger.info("Application shutting down...")
     client.close()
+    logger.info("MongoDB connection closed")

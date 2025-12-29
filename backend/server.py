@@ -84,6 +84,27 @@ async def health_check():
         }
 
 
+# API-prefixed health check (for ingress routing)
+@api_router.get("/health")
+async def api_health_check():
+    """Health check endpoint under /api prefix"""
+    try:
+        await client.admin.command('ping')
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return {
+            "status": "unhealthy",
+            "database": "disconnected",
+            "error": str(e),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+
 # Root health check (backup)
 @app.get("/")
 async def root_health():

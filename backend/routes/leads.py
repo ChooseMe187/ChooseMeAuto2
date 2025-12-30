@@ -199,13 +199,19 @@ async def create_form_lead(lead: FormLeadPayload):
     except Exception as e:
         logger.warning(f"⚠️ Mailchimp error: {str(e)}")
     
-    # Send alerts
+    # Send alerts and capture status
+    alert_result = {"email_status": "disabled", "notified": False}
     try:
-        notify_new_lead(doc)
+        alert_result = notify_new_lead(doc)
     except Exception as e:
         logger.warning(f"⚠️ Alert error: {str(e)}")
     
-    return {"ok": True, "message": "Lead captured successfully", "id": str(result.inserted_id)}
+    return {
+        "ok": True, 
+        "message": "Lead captured successfully", 
+        "id": str(result.inserted_id),
+        "email_status": alert_result.get("email_status", "deferred")
+    }
 
 
 @router.post("/vehicle-leads/availability")

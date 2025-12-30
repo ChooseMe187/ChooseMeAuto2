@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 from routes.vehicles import router as vehicles_router, set_db as set_vehicles_db
 from routes.leads import router as leads_router, set_db as set_leads_db
 from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
+from utils.alerts import get_notification_status
 
 # MongoDB connection with error handling
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')

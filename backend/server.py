@@ -119,6 +119,22 @@ async def api_root():
     return {"message": "Choose Me Auto API", "version": "1.0.0"}
 
 
+@api_router.get("/notifications/status")
+async def notifications_status():
+    """
+    Get the current status of all notification channels.
+    Phase 2B Status:
+    - Phase 2B.1 – Email Architecture: ✅ Complete
+    - Phase 2B.2 – Email Provider Activation: ⏸ Deferred (external dependency)
+    """
+    status = get_notification_status()
+    status["phase"] = {
+        "2B.1_email_architecture": "complete",
+        "2B.2_email_provider": "deferred"
+    }
+    return status
+
+
 @api_router.post("/status", response_model=StatusCheck)
 async def create_status_check(input: StatusCheckCreate):
     status_dict = input.model_dump()

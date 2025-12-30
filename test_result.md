@@ -1,28 +1,58 @@
 # Test Result File - Choose Me Auto
 
-## Final Test Status - All Tests PASSED ✅
+## Phase 2B Status
 
-### Backend Tests (10/10 PASSED)
-- ✅ Vehicle API with New Fields - All endpoints working
-- ✅ Admin Vehicle Management APIs - CRUD operations functional
-- ✅ Lead Submission APIs - Both legacy and form endpoints working
-- ✅ Condition filtering (New/Used) working correctly
-- ✅ New fields (carfax_url, window_sticker_url, call_for_availability_enabled) properly implemented
+### Phase 2B.1 – Email Architecture: ✅ Complete
+- Alert module fully implemented (`/app/backend/utils/alerts.py`)
+- Email, SMS (Twilio), Slack notification channels ready
+- Email templates finalized with proper formatting
+- All functions return status: "sent" | "deferred" | "error" | "disabled"
 
-### Frontend Tests (All PASSED)
-- ✅ New Vehicles Section (P0) - /new route filters correctly, navbar link works
-- ✅ Document Buttons - Window Sticker & CARFAX buttons work with fallbacks
-- ✅ Call for Availability CTA (P1) - Desktop modal, mobile click-to-call, inline form all working
-- ✅ Admin Panel New Fields - Condition dropdown, URLs, toggle all present
-- ✅ i18n Spanish Translations - All translations working (verified with screenshot)
+### Phase 2B.2 – Email Provider Activation: ⏸ Deferred
+- External dependency (SendGrid/SES/Postmark credentials)
+- One-line swap when provider access is restored:
+  - Set `ALERTS_ENABLED=true` in backend/.env
+  - Add SMTP credentials (SMTP_HOST, SMTP_USER, SMTP_PASS, ALERT_EMAIL_TO)
+
+## Verification Completed ✅
+
+1. ✅ **Forms still submit and save** - Leads stored in MongoDB
+2. ✅ **No errors thrown when email is deferred** - Graceful handling
+3. ✅ **Console logs clearly show "email deferred"** - `[ALERTS DISABLED]` or `[EMAIL DEFERRED]`
+4. ✅ **Easy one-line swap** - Just update .env variables
+
+## API Endpoints
+
+### Notification Status
+- `GET /api/notifications/status` - Shows current notification channel status
+
+### Lead Submission Response
+```json
+{
+  "ok": true,
+  "message": "Lead captured successfully",
+  "id": "...",
+  "email_status": "disabled"  // or "deferred" when alerts enabled but no provider
+}
+```
 
 ## Admin Credentials
 - URL: /admin
 - Password: ChooseMeAuto_dd60adca035e7469
 
-## Test Vehicles
-- New vehicle: Stock # CMAEE34F7 (2025 Honda Accord) - All features enabled
-- Used vehicle: Stock # CMA5A1BBF (2023 Toyota Camry) - Basic config
+## To Enable Email Notifications
+Edit `/app/backend/.env`:
+```
+ALERTS_ENABLED=true
+ALERT_ON_NEW_LEAD=true
+SMTP_HOST=smtp.sendgrid.net
+SMTP_PORT=587
+SMTP_USER=apikey
+SMTP_PASS=your-sendgrid-api-key
+ALERT_EMAIL_TO=admin@choosemeauto.com
+```
 
-## Implementation Complete
-All features from the scope document have been implemented and tested.
+## Files Modified
+- `/app/backend/utils/alerts.py` - Updated with clear DEFERRED status logging
+- `/app/backend/routes/leads.py` - Returns email_status in response
+- `/app/backend/server.py` - Added /api/notifications/status endpoint

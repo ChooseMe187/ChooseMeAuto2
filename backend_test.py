@@ -721,8 +721,7 @@ def main():
     
     # NEW FEATURED VEHICLES TESTS
     # Test 11: Get featured vehicles
-    featured_success, featured_vehicles = test_featured_vehicles_endpoint()
-    test_results.append(featured_success)
+    test_results.append(test_featured_vehicles_endpoint())
     
     # Test 12: Update vehicle featured status
     update_featured_success, featured_test_vehicle_id = test_update_vehicle_featured_status()

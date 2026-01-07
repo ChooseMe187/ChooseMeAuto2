@@ -104,12 +104,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "IMG-1: Upload Flow Test"
-    - "IMG-2: Image Data Contract Test"
-    - "IMG-3: Migration Test"
-    - "IMG-5: Validation Test"
-    - "IMG-6: Delete Photo Test"
-    - "IMG-7: Set Primary Photo Test"
+    - "IMG-5: Upload Validation + Error UX"
+    - "IMG-6: Photo Management UI"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"

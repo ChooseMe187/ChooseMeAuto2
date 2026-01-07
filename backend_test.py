@@ -677,6 +677,7 @@ def main():
     
     test_results = []
     test_vehicle_id = None
+    featured_test_vehicle_id = None
     
     # Test 1: Get all vehicles
     test_results.append(test_vehicles_api())
@@ -718,8 +719,24 @@ def main():
     else:
         test_results.append(False)
     
-    # Clean up test vehicle
+    # NEW FEATURED VEHICLES TESTS
+    # Test 11: Get featured vehicles
+    featured_success, featured_vehicles = test_featured_vehicles_endpoint()
+    test_results.append(featured_success)
+    
+    # Test 12: Update vehicle featured status
+    update_featured_success, featured_test_vehicle_id = test_update_vehicle_featured_status()
+    test_results.append(update_featured_success)
+    
+    # Test 13: Verify featured vehicles sorting
+    test_results.append(test_featured_vehicles_order())
+    
+    # Test 14: Remove vehicle from featured
+    test_results.append(test_remove_from_featured())
+    
+    # Clean up test vehicles
     cleanup_test_vehicle(test_vehicle_id)
+    cleanup_featured_test_vehicle(featured_test_vehicle_id)
     
     # Summary
     print(f"\n{'='*60}")
@@ -739,7 +756,11 @@ def main():
         "Update vehicle",
         "Create availability lead",
         "Create form lead",
-        "Verify lead storage"
+        "Verify lead storage",
+        "GET /api/vehicles/featured",
+        "Update vehicle featured status",
+        "Featured vehicles sorting",
+        "Remove from featured"
     ]
     
     for i, (name, result) in enumerate(zip(test_names, test_results)):

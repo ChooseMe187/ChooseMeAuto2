@@ -51,28 +51,36 @@ export const homeCopy = {
     en: "Rating",
     es: "Calificación",
   },
+  quickNew: {
+    en: "Shop New Vehicles",
+    es: "Ver Vehículos Nuevos",
+  },
+  quickNewDesc: {
+    en: "Latest arrivals with full manufacturer warranty",
+    es: "Últimas llegadas con garantía completa del fabricante",
+  },
   quickUsed: {
     en: "Shop Used Vehicles",
     es: "Ver Vehículos Usados",
   },
   quickUsedDesc: {
-    en: "Browse our selection of quality pre-owned cars, trucks, and SUVs",
-    es: "Explora nuestra selección de autos, camionetas y SUVs usados de calidad",
+    en: "Quality pre-owned cars, trucks, and SUVs",
+    es: "Autos, camionetas y SUVs usados de calidad",
   },
   quickPreApproved: {
     en: "Get Pre-Approved",
     es: "Obtén Pre-Aprobación",
   },
   quickPreApprovedDesc: {
-    en: "Bad credit? No credit? No problem. Get approved in minutes",
-    es: "¿Crédito malo? ¿Sin crédito? Sin problema. Aprobación en minutos",
+    en: "Bad credit? No problem. Approved in minutes",
+    es: "¿Crédito malo? Sin problema. Aprobación en minutos",
   },
   quickTestDrive: {
     en: "Schedule Test Drive",
-    es: "Agenda una Prueba de Manejo",
+    es: "Agenda una Prueba",
   },
   quickTestDriveDesc: {
-    en: "Experience your dream vehicle in person — book online today",
-    es: "Experimenta tu vehículo soñado en persona — reserva hoy en línea",
+    en: "Experience your dream vehicle in person",
+    es: "Experimenta tu vehículo soñado en persona",
   },
 };

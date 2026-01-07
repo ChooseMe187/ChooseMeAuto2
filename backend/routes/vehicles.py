@@ -19,26 +19,74 @@ def get_vehicles_collection():
     return db["admin_vehicles"]
 
 
-def serialize_to_public_vehicle(doc) -> dict:
-    """Convert MongoDB admin_vehicle document to public Vehicle format"""
-    # Normalize images to consistent format
+def serialize_to_public_vehicle_list(doc) -> dict:
+    """
+    Lightweight serializer for vehicle lists (SRP, Featured, Homepage).
+    Returns thumbnail URLs only to improve page load speed.
+    """
     images = normalize_images_field(doc)
     
-    # Get primary image URL (first image or first with is_primary=True)
+    # Get primary thumbnail (first image or first with is_primary=True)
+    primary_url = None
+    for img in images:
+        if isinstance(img, dict):
+            # Prefer thumbnail_url for list views (smaller payload)
+            thumb = img.get("thumbnail_url")
+            url = img.get("url", "")
+            if img.get("is_primary"):
+                primary_url = thumb or url
+                break
+            if not primary_url:
+                primary_url = thumb or url
+        else:
+            if not primary_url:
+                primary_url = img
+    
+    return {
+        "stock_id": doc.get("stock_number") or str(doc.get("_id")),
+        "id": str(doc.get("_id")),
+        "vin": doc.get("vin", ""),
+        "year": doc.get("year", 0),
+        "make": doc.get("make", ""),
+        "model": doc.get("model", ""),
+        "trim": doc.get("trim", ""),
+        "price": doc.get("price"),
+        "mileage": doc.get("mileage"),
+        "body_style": doc.get("body_style"),
+        "condition": doc.get("condition", "Used"),
+        # Only primary thumbnail for lists (faster loading)
+        "primary_image_url": primary_url,
+        "image_url": primary_url,
+        # Featured flags
+        "is_featured_homepage": doc.get("is_featured_homepage", False),
+        "featured_rank": doc.get("featured_rank"),
+    }
+
+
+def serialize_to_public_vehicle_detail(doc) -> dict:
+    """
+    Full serializer for vehicle detail pages (VDP).
+    Returns all images with full URLs for gallery view.
+    """
+    images = normalize_images_field(doc)
+    
+    # Get primary and other images
     primary_url = None
     other_urls = []
+    all_urls = []
     
     for img in images:
         url = img.get("url", "") if isinstance(img, dict) else img
-        if not primary_url:
-            if isinstance(img, dict) and img.get("is_primary"):
-                primary_url = url
-            elif not primary_url:
-                primary_url = url
+        all_urls.append(url)
+        
+        if isinstance(img, dict) and img.get("is_primary"):
+            primary_url = url
+        elif not primary_url:
+            primary_url = url
         else:
             other_urls.append(url)
     
-    # Build photo_urls list (primary first)
+    # Ensure primary is first
     photo_urls = [primary_url] + other_urls if primary_url else other_urls
     
     return {
@@ -56,12 +104,11 @@ def serialize_to_public_vehicle(doc) -> dict:
         "exterior_color": doc.get("exterior_color"),
         "interior_color": doc.get("interior_color"),
         "condition": doc.get("condition", "Used"),
-        # Image URLs
+        # Full image URLs for detail view
         "image_url": primary_url,
         "image_urls": other_urls,
         "photo_urls": photo_urls,
         "primary_image_url": primary_url,
-        # New images array with full metadata
         "images": images,
         # Document & CTA fields
         "carfax_url": doc.get("carfax_url"),
@@ -71,6 +118,12 @@ def serialize_to_public_vehicle(doc) -> dict:
         "is_featured_homepage": doc.get("is_featured_homepage", False),
         "featured_rank": doc.get("featured_rank"),
     }
+
+
+# Legacy function for backward compatibility
+def serialize_to_public_vehicle(doc) -> dict:
+    """Alias for detail serializer"""
+    return serialize_to_public_vehicle_detail(doc)
 
 
 @router.get("/vehicles/featured")

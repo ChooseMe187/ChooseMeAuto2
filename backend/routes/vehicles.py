@@ -130,8 +130,7 @@ def serialize_to_public_vehicle(doc) -> dict:
 async def get_featured_vehicles(limit: int = Query(8, ge=1, le=20)):
     """
     Get featured vehicles for homepage display.
-    Returns vehicles flagged as is_featured_homepage=True.
-    Sorted by featured_rank (if set) then by created_at desc.
+    Returns lightweight data with thumbnails only for fast loading.
     """
     coll = get_vehicles_collection()
     
@@ -140,6 +139,7 @@ async def get_featured_vehicles(limit: int = Query(8, ge=1, le=20)):
         "is_featured_homepage": True,
     }
     
+    # Only fetch fields needed for list view
     projection = {
         "_id": 1,
         "stock_number": 1,
@@ -151,13 +151,11 @@ async def get_featured_vehicles(limit: int = Query(8, ge=1, le=20)):
         "price": 1,
         "mileage": 1,
         "condition": 1,
-        "photo_urls": 1,
+        "images": 1,  # Need images for thumbnail extraction
         "is_featured_homepage": 1,
         "featured_rank": 1,
-        "created_at": 1,
     }
     
-    # Sort by featured_rank (nulls last), then by created_at desc
     cursor = coll.find(query, projection).sort([
         ("featured_rank", 1),
         ("created_at", -1)
@@ -165,7 +163,8 @@ async def get_featured_vehicles(limit: int = Query(8, ge=1, le=20)):
     
     vehicles = await cursor.to_list(limit)
     
-    return [serialize_to_public_vehicle(v) for v in vehicles]
+    # Use lightweight serializer for list view
+    return [serialize_to_public_vehicle_list(v) for v in vehicles]
 
 
 @router.get("/vehicles")

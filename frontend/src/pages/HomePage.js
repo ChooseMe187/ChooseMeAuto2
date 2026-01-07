@@ -2,7 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { homeCopy } from "../i18n/home";
+import FeaturedVehicles from "../components/FeaturedVehicles";
 import "../styles/home.css";
+import "../styles/featured-vehicles.css";
 
 const HomePage = () => {
   const { lang } = useLanguage();
@@ -76,8 +78,18 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Featured Vehicles Section - NEW */}
+      <FeaturedVehicles />
+
       {/* Quick Links */}
       <section className="cma-quick-links">
+        <Link to="/new" className="quick-card">
+          <span className="quick-label">{homeCopy.quickNew?.[lang] || "New Vehicles"}</span>
+          <span className="quick-desc">
+            {homeCopy.quickNewDesc?.[lang] || "Latest arrivals with full warranty"}
+          </span>
+        </Link>
+
         <Link to="/used" className="quick-card">
           <span className="quick-label">{homeCopy.quickUsed[lang]}</span>
           <span className="quick-desc">
@@ -98,6 +110,52 @@ const HomePage = () => {
             {homeCopy.quickTestDriveDesc[lang]}
           </span>
         </Link>
+      </section>
+
+      {/* Trust Section - Customer Service Feel */}
+      <section className="cma-trust-section">
+        <div className="cma-trust-inner">
+          <div className="cma-trust-content">
+            <h2>{lang === "es" ? "¿Por Qué Elegirnos?" : "Why Choose Us?"}</h2>
+            <ul className="cma-trust-list">
+              <li>
+                <span className="trust-icon">🤝</span>
+                <div>
+                  <strong>{lang === "es" ? "Servicio Personalizado" : "Personalized Service"}</strong>
+                  <p>{lang === "es" ? "Nuestro equipo habla español e inglés" : "Our team speaks English and Spanish"}</p>
+                </div>
+              </li>
+              <li>
+                <span className="trust-icon">✅</span>
+                <div>
+                  <strong>{lang === "es" ? "Aprobación Garantizada" : "Guaranteed Approval"}</strong>
+                  <p>{lang === "es" ? "Trabajamos con todo tipo de crédito" : "We work with all credit types"}</p>
+                </div>
+              </li>
+              <li>
+                <span className="trust-icon">💰</span>
+                <div>
+                  <strong>{lang === "es" ? "Precios Transparentes" : "Transparent Pricing"}</strong>
+                  <p>{lang === "es" ? "Sin cargos ocultos ni sorpresas" : "No hidden fees or surprises"}</p>
+                </div>
+              </li>
+              <li>
+                <span className="trust-icon">🚗</span>
+                <div>
+                  <strong>{lang === "es" ? "Vehículos de Calidad" : "Quality Vehicles"}</strong>
+                  <p>{lang === "es" ? "Todos inspeccionados y certificados" : "All inspected and certified"}</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div className="cma-trust-image">
+            <img 
+              src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&q=80" 
+              alt={lang === "es" ? "Equipo de ventas atendiendo cliente" : "Sales team helping customer"}
+              loading="lazy"
+            />
+          </div>
+        </div>
       </section>
     </div>
   );

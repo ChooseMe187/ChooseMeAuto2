@@ -20,6 +20,7 @@ def get_vehicles_collection():
 
 def serialize_to_public_vehicle(doc) -> dict:
     """Convert MongoDB admin_vehicle document to public Vehicle format"""
+    photo_urls = doc.get("photo_urls", [])
     return {
         "stock_id": doc.get("stock_number") or str(doc.get("_id")),
         "id": str(doc.get("_id")),
@@ -35,14 +36,59 @@ def serialize_to_public_vehicle(doc) -> dict:
         "exterior_color": doc.get("exterior_color"),
         "interior_color": doc.get("interior_color"),
         "condition": doc.get("condition", "Used"),
-        "image_url": doc.get("photo_urls", [])[0] if doc.get("photo_urls") else None,
-        "image_urls": doc.get("photo_urls", [])[1:] if len(doc.get("photo_urls", [])) > 1 else [],
-        "photo_urls": doc.get("photo_urls", []),
-        # New fields
+        "image_url": photo_urls[0] if photo_urls else None,
+        "image_urls": photo_urls[1:] if len(photo_urls) > 1 else [],
+        "photo_urls": photo_urls,
+        "primary_image_url": photo_urls[0] if photo_urls else None,
+        # Document & CTA fields
         "carfax_url": doc.get("carfax_url"),
         "window_sticker_url": doc.get("window_sticker_url"),
         "call_for_availability_enabled": doc.get("call_for_availability_enabled", False),
+        # Featured flags
+        "is_featured_homepage": doc.get("is_featured_homepage", False),
+        "featured_rank": doc.get("featured_rank"),
     }
+
+
+@router.get("/vehicles/featured")
+async def get_featured_vehicles(limit: int = Query(8, ge=1, le=20)):
+    """
+    Get featured vehicles for homepage display.
+    Returns vehicles flagged as is_featured_homepage=True.
+    Sorted by featured_rank (if set) then by created_at desc.
+    """
+    coll = get_vehicles_collection()
+    
+    query = {
+        "is_active": True,
+        "is_featured_homepage": True,
+    }
+    
+    projection = {
+        "_id": 1,
+        "stock_number": 1,
+        "vin": 1,
+        "year": 1,
+        "make": 1,
+        "model": 1,
+        "trim": 1,
+        "price": 1,
+        "mileage": 1,
+        "condition": 1,
+        "photo_urls": 1,
+        "featured_rank": 1,
+        "created_at": 1,
+    }
+    
+    # Sort by featured_rank (nulls last), then by created_at desc
+    cursor = coll.find(query, projection).sort([
+        ("featured_rank", 1),
+        ("created_at", -1)
+    ]).limit(limit)
+    
+    vehicles = await cursor.to_list(limit)
+    
+    return [serialize_to_public_vehicle(v) for v in vehicles]
 
 
 @router.get("/vehicles")

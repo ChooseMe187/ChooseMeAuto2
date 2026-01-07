@@ -31,10 +31,6 @@ def create_test_image(width=800, height=600, format='JPEG', color=(255, 0, 0)):
     buffer.seek(0)
     return buffer.getvalue()
 
-def create_invalid_file():
-    """Create an invalid file (text file with image extension)"""
-    return b"This is not an image file"
-
 def print_test_header(test_name):
     print(f"\n{'='*60}")
     print(f"TESTING: {test_name}")
@@ -46,8 +42,8 @@ def print_result(test_name, success, details=""):
     if details:
         print(f"   Details: {details}")
 
-# IMG-1: Upload Flow Test
-def test_img1_upload_flow():
+# S0.1: Credential Rotation Test
+def test_s01_credential_rotation():
     """IMG-1: Test vehicle image upload flow"""
     print_test_header("IMG-1: Vehicle Image Upload Flow")
     

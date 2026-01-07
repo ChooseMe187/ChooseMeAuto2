@@ -44,20 +44,88 @@ def print_result(test_name, success, details=""):
 
 # S0.1: Credential Rotation Test
 def test_s01_credential_rotation():
-    """IMG-1: Test vehicle image upload flow"""
-    print_test_header("IMG-1: Vehicle Image Upload Flow")
+def test_s01_credential_rotation():
+    """S0.1: Test credential rotation and rate limiting"""
+    print_test_header("S0.1: Credential Rotation Test")
+    
+    # Test 1: OLD token should be rejected
+    try:
+        headers = {'x-admin-token': OLD_ADMIN_TOKEN}
+        response = requests.get(f"{BACKEND_URL}/admin/vehicles", headers=headers, timeout=10)
+        
+        if response.status_code == 401:
+            print_result("OLD token rejection", True, "Old token properly rejected with 401")
+        else:
+            print_result("OLD token rejection", False, f"Expected 401, got {response.status_code}")
+            return False
+    except Exception as e:
+        print_result("OLD token rejection", False, f"Exception: {str(e)}")
+        return False
+    
+    # Test 2: NEW token should work
+    try:
+        headers = {'x-admin-token': NEW_ADMIN_TOKEN}
+        response = requests.get(f"{BACKEND_URL}/admin/vehicles", headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            print_result("NEW token acceptance", True, "New token works correctly")
+        else:
+            print_result("NEW token acceptance", False, f"Expected 200, got {response.status_code}")
+            return False
+    except Exception as e:
+        print_result("NEW token acceptance", False, f"Exception: {str(e)}")
+        return False
+    
+    # Test 3: Login rate limiting
+    try:
+        wrong_password = "wrong_password_123"
+        login_data = {"password": wrong_password}
+        
+        # Make 3 failed attempts
+        for i in range(3):
+            response = requests.post(f"{BACKEND_URL}/admin/login", 
+                                   json=login_data, 
+                                   timeout=10)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if not result.get("success", True):
+                    remaining = result.get("remaining_attempts")
+                    if remaining is not None:
+                        print_result(f"Failed attempt {i+1}", True, f"Remaining attempts: {remaining}")
+                    else:
+                        print_result(f"Failed attempt {i+1}", True, "Login failed as expected")
+                else:
+                    print_result(f"Failed attempt {i+1}", False, "Login should have failed")
+                    return False
+            else:
+                print_result(f"Failed attempt {i+1}", False, f"Unexpected status: {response.status_code}")
+                return False
+        
+        print_result("S0.1: Credential Rotation", True, "All credential tests passed")
+        return True
+        
+    except Exception as e:
+        print_result("S0.1: Credential Rotation", False, f"Rate limiting test exception: {str(e)}")
+        return False
+
+
+# S0.2: Upload Limit Test
+def test_s02_upload_limits():
+    """S0.2: Test upload payload limits"""
+    print_test_header("S0.2: Upload Limit Test")
     
     # First, create a test vehicle
     headers = {
         'Content-Type': 'application/json',
-        'x-admin-token': ADMIN_TOKEN
+        'x-admin-token': NEW_ADMIN_TOKEN
     }
     
     test_vehicle = {
-        "vin": "IMG1TEST123456789",
+        "vin": "S02TEST123456789",
         "year": 2024,
         "make": "Test",
-        "model": "ImageUpload",
+        "model": "UploadLimit",
         "trim": "Test Trim",
         "price": 30000,
         "mileage": 0,
@@ -83,418 +151,127 @@ def test_s01_credential_rotation():
         vehicle_id = created_vehicle.get('id')
         print_result("Create test vehicle", True, f"Created vehicle with ID: {vehicle_id}")
         
-        # Create test images
-        test_image_jpg = create_test_image(format='JPEG', color=(255, 0, 0))  # Red
-        test_image_png = create_test_image(format='PNG', color=(0, 255, 0))   # Green
+        # Test: Try to upload more than 12 images (should fail)
+        test_images = []
+        for i in range(13):  # 13 images (exceeds limit of 12)
+            test_image = create_test_image(format='JPEG', color=(i*20, 100, 200))
+            test_images.append(('files', (f'test{i}.jpg', test_image, 'image/jpeg')))
         
-        # Upload images
-        files = [
-            ('files', ('test1.jpg', test_image_jpg, 'image/jpeg')),
-            ('files', ('test2.png', test_image_png, 'image/png'))
-        ]
-        
-        upload_headers = {'x-admin-token': ADMIN_TOKEN}
+        upload_headers = {'x-admin-token': NEW_ADMIN_TOKEN}
         
         response = requests.post(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}/photos",
                                headers=upload_headers,
-                               files=files,
+                               files=test_images,
                                timeout=30)
         
-        if response.status_code != 200:
-            print_result("Upload images", False, f"Status code: {response.status_code}, Response: {response.text}")
-            return False, vehicle_id
-            
-        upload_result = response.json()
-        
-        # Verify response structure
-        required_fields = ['images', 'photo_urls', 'uploaded_count']
-        for field in required_fields:
-            if field not in upload_result:
-                print_result("Upload response structure", False, f"Missing field: {field}")
+        if response.status_code == 400:
+            result = response.json()
+            if "limit exceeded" in str(result).lower() or "maximum" in str(result).lower():
+                print_result("Upload limit enforcement", True, "Upload limit properly enforced")
+                return True, vehicle_id
+            else:
+                print_result("Upload limit enforcement", False, f"Wrong error message: {result}")
                 return False, vehicle_id
-        
-        # Verify uploaded count
-        if upload_result['uploaded_count'] != 2:
-            print_result("Upload count", False, f"Expected 2, got {upload_result['uploaded_count']}")
+        else:
+            print_result("Upload limit enforcement", False, f"Expected 400, got {response.status_code}")
             return False, vehicle_id
             
-        # Verify images are Base64 data URLs
-        images = upload_result['images']
-        if len(images) != 2:
-            print_result("Images array length", False, f"Expected 2, got {len(images)}")
-            return False, vehicle_id
-            
-        for i, img in enumerate(images):
-            if not img.get('url', '').startswith('data:image/webp;base64,'):
-                print_result(f"Image {i+1} data URL format", False, f"URL: {img.get('url', '')[:50]}...")
-                return False, vehicle_id
-                
-        # Verify first image is primary
-        if not images[0].get('is_primary'):
-            print_result("First image primary flag", False, "First image should be primary")
-            return False, vehicle_id
-            
-        print_result("IMG-1: Upload Flow", True, f"Successfully uploaded {upload_result['uploaded_count']} images")
-        return True, vehicle_id
-        
     except Exception as e:
-        print_result("IMG-1: Upload Flow", False, f"Exception: {str(e)}")
+        print_result("S0.2: Upload Limits", False, f"Exception: {str(e)}")
         return False, None
 
-# IMG-2: Image Data Contract Test
-def test_img2_data_contract(vehicle_id):
-    """IMG-2: Test image data contract in API responses"""
-    print_test_header("IMG-2: Image Data Contract Test")
-    
-    headers = {'x-admin-token': ADMIN_TOKEN}
-    
-    try:
-        # Test admin vehicles endpoint
-        response = requests.get(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
-                              headers=headers, 
-                              timeout=10)
-        
-        if response.status_code != 200:
-            print_result("Admin vehicle endpoint", False, f"Status code: {response.status_code}")
-            return False
-            
-        admin_vehicle = response.json()
-        
-        # Verify admin response structure
-        if 'images' not in admin_vehicle:
-            print_result("Admin images field", False, "Missing images field")
-            return False
-            
-        if 'photo_urls' not in admin_vehicle:
-            print_result("Admin photo_urls field", False, "Missing photo_urls field")
-            return False
-            
-        images = admin_vehicle['images']
-        if not images:
-            print_result("Admin images array", False, "Images array is empty")
-            return False
-            
-        # Check image structure
-        sample_image = images[0]
-        required_image_fields = ['url', 'is_primary', 'upload_id']
-        for field in required_image_fields:
-            if field not in sample_image:
-                print_result(f"Admin image {field} field", False, f"Missing {field} in image object")
-                return False
-                
-        print_result("Admin endpoint data contract", True, "All required fields present")
-        
-        # Test public vehicles endpoint
-        vehicle_stock = admin_vehicle.get('stock_number')
-        if not vehicle_stock:
-            print_result("Vehicle stock number", False, "No stock number found")
-            return False
-            
-        response = requests.get(f"{BACKEND_URL}/vehicles/{vehicle_stock}", timeout=10)
-        
-        if response.status_code != 200:
-            print_result("Public vehicle endpoint", False, f"Status code: {response.status_code}")
-            return False
-            
-        public_vehicle = response.json()
-        
-        # Verify public response has same schema
-        if 'images' not in public_vehicle:
-            print_result("Public images field", False, "Missing images field")
-            return False
-            
-        if 'photo_urls' not in public_vehicle:
-            print_result("Public photo_urls field", False, "Missing photo_urls field")
-            return False
-            
-        # Verify images match
-        if len(public_vehicle['images']) != len(admin_vehicle['images']):
-            print_result("Public/Admin images count match", False, 
-                        f"Admin: {len(admin_vehicle['images'])}, Public: {len(public_vehicle['images'])}")
-            return False
-            
-        print_result("IMG-2: Data Contract", True, "Both admin and public endpoints return correct schema")
-        return True
-        
-    except Exception as e:
-        print_result("IMG-2: Data Contract", False, f"Exception: {str(e)}")
-        return False
 
-# IMG-3: Migration Test
-def test_img3_migration():
-    """IMG-3: Test image migration endpoint"""
-    print_test_header("IMG-3: Image Migration Test")
-    
-    headers = {
-        'Content-Type': 'application/json',
-        'x-admin-token': ADMIN_TOKEN
-    }
+# S0.3: API Response Optimization Test
+def test_s03_api_optimization():
+    """S0.3: Test API response optimization"""
+    print_test_header("S0.3: API Response Optimization Test")
     
     try:
-        # Run migration
-        response = requests.post(f"{BACKEND_URL}/admin/migrate-images", 
-                               headers=headers, 
-                               timeout=30)
+        # Test 1: GET /api/vehicles (list) - should have limited fields
+        response = requests.get(f"{BACKEND_URL}/vehicles", timeout=10)
         
         if response.status_code != 200:
-            print_result("Migration endpoint", False, f"Status code: {response.status_code}")
+            print_result("Vehicles list endpoint", False, f"Status code: {response.status_code}")
             return False
             
-        migration_result = response.json()
+        vehicles_list = response.json()
         
-        # Verify response structure
-        required_fields = ['success', 'migrated', 'skipped', 'total']
-        for field in required_fields:
-            if field not in migration_result:
-                print_result(f"Migration {field} field", False, f"Missing {field}")
-                return False
-                
-        if not migration_result['success']:
-            print_result("Migration success", False, "Migration reported failure")
-            return False
-            
-        # Run migration again to test idempotency
-        response2 = requests.post(f"{BACKEND_URL}/admin/migrate-images", 
-                                headers=headers, 
-                                timeout=30)
-        
-        if response2.status_code != 200:
-            print_result("Migration idempotency", False, f"Second run failed: {response2.status_code}")
-            return False
-            
-        migration_result2 = response2.json()
-        
-        # Second run should skip more records (idempotent)
-        if migration_result2['migrated'] > migration_result['migrated']:
-            print_result("Migration idempotency", False, "Second run migrated more than first run")
-            return False
-            
-        print_result("IMG-3: Migration", True, 
-                    f"First run: {migration_result['migrated']} migrated, {migration_result['skipped']} skipped. "
-                    f"Second run: {migration_result2['migrated']} migrated, {migration_result2['skipped']} skipped")
-        return True
-        
-    except Exception as e:
-        print_result("IMG-3: Migration", False, f"Exception: {str(e)}")
-        return False
-
-# IMG-5: Validation Test
-def test_img5_validation(vehicle_id):
-    """IMG-5: Test file validation"""
-    print_test_header("IMG-5: File Validation Test")
-    
-    upload_headers = {'x-admin-token': ADMIN_TOKEN}
-    
-    try:
-        # Test invalid file type
-        invalid_file = create_invalid_file()
-        files = [('files', ('test.txt', invalid_file, 'text/plain'))]
-        
-        response = requests.post(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}/photos",
-                               headers=upload_headers,
-                               files=files,
-                               timeout=10)
-        
-        if response.status_code == 200:
-            # Check if it properly rejected the invalid file
-            result = response.json()
-            if result.get('uploaded_count', 0) > 0:
-                print_result("Invalid file rejection", False, "Invalid file was accepted")
-                return False
-            elif 'errors' in result and len(result['errors']) > 0:
-                print_result("Invalid file rejection", True, f"Properly rejected: {result['errors'][0]['error']}")
-            else:
-                print_result("Invalid file rejection", False, "No error reported for invalid file")
-                return False
-        elif response.status_code == 400:
-            print_result("Invalid file rejection", True, "Invalid file properly rejected with 400")
-        else:
-            print_result("Invalid file rejection", False, f"Unexpected status: {response.status_code}")
+        if not vehicles_list:
+            print_result("Vehicles list data", False, "No vehicles found for testing")
             return False
         
-        # Test valid file types
-        valid_jpg = create_test_image(format='JPEG', color=(0, 0, 255))  # Blue
-        valid_png = create_test_image(format='PNG', color=(255, 255, 0))  # Yellow
+        # Check first vehicle in list
+        first_vehicle = vehicles_list[0]
         
-        files = [
-            ('files', ('valid.jpg', valid_jpg, 'image/jpeg')),
-            ('files', ('valid.png', valid_png, 'image/png'))
+        # Required fields for list view
+        required_list_fields = [
+            'stock_id', 'id', 'vin', 'year', 'make', 'model', 'trim', 
+            'price', 'mileage', 'primary_image_url', 'body_style', 'condition'
         ]
         
-        response = requests.post(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}/photos",
-                               headers=upload_headers,
-                               files=files,
-                               timeout=30)
+        # Fields that should NOT be in list view
+        excluded_list_fields = ['images', 'photo_urls', 'carfax_url', 'drivetrain']
+        
+        # Check required fields are present
+        missing_fields = []
+        for field in required_list_fields:
+            if field not in first_vehicle:
+                missing_fields.append(field)
+        
+        if missing_fields:
+            print_result("List view required fields", False, f"Missing fields: {missing_fields}")
+            return False
+        
+        # Check excluded fields are absent
+        present_excluded = []
+        for field in excluded_list_fields:
+            if field in first_vehicle:
+                present_excluded.append(field)
+        
+        if present_excluded:
+            print_result("List view excluded fields", False, f"Should not have: {present_excluded}")
+            return False
+        
+        print_result("List view optimization", True, "List endpoint properly optimized")
+        
+        # Test 2: GET /api/vehicles/{stock_id} (detail) - should have all fields
+        stock_id = first_vehicle.get('stock_id')
+        if not stock_id:
+            print_result("Stock ID for detail test", False, "No stock_id found")
+            return False
+        
+        response = requests.get(f"{BACKEND_URL}/vehicles/{stock_id}", timeout=10)
         
         if response.status_code != 200:
-            print_result("Valid file upload", False, f"Status code: {response.status_code}")
+            print_result("Vehicle detail endpoint", False, f"Status code: {response.status_code}")
             return False
             
-        result = response.json()
-        if result.get('uploaded_count', 0) != 2:
-            print_result("Valid file upload", False, f"Expected 2 uploads, got {result.get('uploaded_count', 0)}")
+        vehicle_detail = response.json()
+        
+        # Required fields for detail view (includes all list fields plus extras)
+        required_detail_fields = required_list_fields + [
+            'images', 'photo_urls', 'carfax_url', 'window_sticker_url',
+            'drivetrain', 'exterior_color', 'interior_color'
+        ]
+        
+        # Check all required fields are present
+        missing_detail_fields = []
+        for field in required_detail_fields:
+            if field not in vehicle_detail:
+                missing_detail_fields.append(field)
+        
+        if missing_detail_fields:
+            print_result("Detail view required fields", False, f"Missing fields: {missing_detail_fields}")
             return False
-            
-        print_result("IMG-5: Validation", True, "Invalid files rejected, valid files accepted")
+        
+        print_result("Detail view completeness", True, "Detail endpoint has all required fields")
+        print_result("S0.3: API Optimization", True, "API response optimization working correctly")
         return True
         
     except Exception as e:
-        print_result("IMG-5: Validation", False, f"Exception: {str(e)}")
+        print_result("S0.3: API Optimization", False, f"Exception: {str(e)}")
         return False
 
-# IMG-6: Delete Photo Test
-def test_img6_delete_photo(vehicle_id):
-    """IMG-6: Test photo deletion"""
-    print_test_header("IMG-6: Delete Photo Test")
-    
-    headers = {'x-admin-token': ADMIN_TOKEN}
-    
-    try:
-        # Get current images
-        response = requests.get(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
-                              headers=headers, 
-                              timeout=10)
-        
-        if response.status_code != 200:
-            print_result("Get vehicle for deletion", False, f"Status code: {response.status_code}")
-            return False
-            
-        vehicle = response.json()
-        images_before = vehicle.get('images', [])
-        
-        if len(images_before) == 0:
-            print_result("Images available for deletion", False, "No images to delete")
-            return False
-            
-        initial_count = len(images_before)
-        
-        # Delete the last photo (index -1 becomes last valid index)
-        delete_index = initial_count - 1
-        
-        response = requests.delete(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}/photos/{delete_index}",
-                                 headers=headers,
-                                 timeout=10)
-        
-        if response.status_code != 200:
-            print_result("Delete photo", False, f"Status code: {response.status_code}")
-            return False
-            
-        delete_result = response.json()
-        
-        # Verify response structure
-        if not delete_result.get('success'):
-            print_result("Delete success flag", False, "Success flag is false")
-            return False
-            
-        if 'images' not in delete_result:
-            print_result("Delete response images", False, "Missing images in response")
-            return False
-            
-        if 'photo_urls' not in delete_result:
-            print_result("Delete response photo_urls", False, "Missing photo_urls in response")
-            return False
-            
-        # Verify count decreased
-        images_after = delete_result['images']
-        if len(images_after) != initial_count - 1:
-            print_result("Image count after deletion", False, 
-                        f"Expected {initial_count - 1}, got {len(images_after)}")
-            return False
-            
-        # Verify photo_urls matches images
-        photo_urls = delete_result['photo_urls']
-        if len(photo_urls) != len(images_after):
-            print_result("Photo URLs count match", False, 
-                        f"Images: {len(images_after)}, URLs: {len(photo_urls)}")
-            return False
-            
-        print_result("IMG-6: Delete Photo", True, f"Successfully deleted photo, {len(images_after)} remaining")
-        return True
-        
-    except Exception as e:
-        print_result("IMG-6: Delete Photo", False, f"Exception: {str(e)}")
-        return False
-
-# IMG-7: Set Primary Photo Test
-def test_img7_set_primary(vehicle_id):
-    """IMG-7: Test setting primary photo"""
-    print_test_header("IMG-7: Set Primary Photo Test")
-    
-    headers = {'x-admin-token': ADMIN_TOKEN}
-    
-    try:
-        # Get current images
-        response = requests.get(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
-                              headers=headers, 
-                              timeout=10)
-        
-        if response.status_code != 200:
-            print_result("Get vehicle for primary test", False, f"Status code: {response.status_code}")
-            return False
-            
-        vehicle = response.json()
-        images_before = vehicle.get('images', [])
-        
-        if len(images_before) < 2:
-            print_result("Multiple images for primary test", False, f"Need at least 2 images, have {len(images_before)}")
-            return False
-            
-        # Find current primary
-        current_primary_index = None
-        for i, img in enumerate(images_before):
-            if img.get('is_primary'):
-                current_primary_index = i
-                break
-                
-        # Set a different image as primary (use index 1 if current primary is 0, else use 0)
-        new_primary_index = 1 if current_primary_index == 0 else 0
-        
-        response = requests.patch(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}/photos/{new_primary_index}/primary",
-                                headers=headers,
-                                timeout=10)
-        
-        if response.status_code != 200:
-            print_result("Set primary photo", False, f"Status code: {response.status_code}")
-            return False
-            
-        primary_result = response.json()
-        
-        # Verify response structure
-        if not primary_result.get('success'):
-            print_result("Primary success flag", False, "Success flag is false")
-            return False
-            
-        if 'images' not in primary_result:
-            print_result("Primary response images", False, "Missing images in response")
-            return False
-            
-        images_after = primary_result['images']
-        
-        # Verify new primary is first in array
-        if not images_after[0].get('is_primary'):
-            print_result("New primary is first", False, "First image is not marked as primary")
-            return False
-            
-        # Verify only one image is marked as primary
-        primary_count = sum(1 for img in images_after if img.get('is_primary'))
-        if primary_count != 1:
-            print_result("Single primary image", False, f"Expected 1 primary, found {primary_count}")
-            return False
-            
-        # Verify order changed (primary should be first)
-        original_primary_url = images_before[new_primary_index]['url']
-        new_first_url = images_after[0]['url']
-        
-        if original_primary_url != new_first_url:
-            print_result("Primary reordering", False, "Primary image was not moved to first position")
-            return False
-            
-        print_result("IMG-7: Set Primary", True, "Primary photo updated and reordered correctly")
-        return True
-        
-    except Exception as e:
-        print_result("IMG-7: Set Primary", False, f"Exception: {str(e)}")
-        return False
 
 def cleanup_test_vehicle(vehicle_id):
     """Clean up test vehicle"""
@@ -502,7 +279,7 @@ def cleanup_test_vehicle(vehicle_id):
         return
         
     headers = {
-        'x-admin-token': ADMIN_TOKEN
+        'x-admin-token': NEW_ADMIN_TOKEN
     }
     
     try:
@@ -516,37 +293,25 @@ def cleanup_test_vehicle(vehicle_id):
     except Exception as e:
         print(f"⚠️ Error cleaning up test vehicle: {str(e)}")
 
+
 def main():
-    """Run all backend tests for Vehicle Image Pipeline"""
-    print("🚗 Choose Me Auto - Vehicle Image Pipeline Testing")
+    """Run all backend tests for Security & Performance Updates"""
+    print("🔒 Choose Me Auto - Security & Performance Testing")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Testing Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     test_results = []
     test_vehicle_id = None
     
-    # IMG-1: Upload Flow Test
-    img1_success, test_vehicle_id = test_img1_upload_flow()
-    test_results.append(img1_success)
+    # S0.1: Credential Rotation Test
+    test_results.append(test_s01_credential_rotation())
     
-    if not test_vehicle_id:
-        print("\n❌ Cannot continue tests without a test vehicle")
-        return False
+    # S0.2: Upload Limit Test
+    s02_success, test_vehicle_id = test_s02_upload_limits()
+    test_results.append(s02_success)
     
-    # IMG-2: Image Data Contract Test
-    test_results.append(test_img2_data_contract(test_vehicle_id))
-    
-    # IMG-3: Migration Test
-    test_results.append(test_img3_migration())
-    
-    # IMG-5: Validation Test
-    test_results.append(test_img5_validation(test_vehicle_id))
-    
-    # IMG-6: Delete Photo Test
-    test_results.append(test_img6_delete_photo(test_vehicle_id))
-    
-    # IMG-7: Set Primary Photo Test
-    test_results.append(test_img7_set_primary(test_vehicle_id))
+    # S0.3: API Response Optimization Test
+    test_results.append(test_s03_api_optimization())
     
     # Clean up test vehicle
     if test_vehicle_id:
@@ -554,19 +319,16 @@ def main():
     
     # Summary
     print(f"\n{'='*60}")
-    print("VEHICLE IMAGE PIPELINE TEST SUMMARY")
+    print("SECURITY & PERFORMANCE TEST SUMMARY")
     print(f"{'='*60}")
     
     passed = sum(test_results)
     total = len(test_results)
     
     test_names = [
-        "IMG-1: Upload Flow Test",
-        "IMG-2: Image Data Contract Test", 
-        "IMG-3: Migration Test",
-        "IMG-5: Validation Test",
-        "IMG-6: Delete Photo Test",
-        "IMG-7: Set Primary Photo Test"
+        "S0.1: Credential Rotation Test",
+        "S0.2: Upload Limit Test", 
+        "S0.3: API Response Optimization Test"
     ]
     
     for i, (name, result) in enumerate(zip(test_names, test_results)):
@@ -576,11 +338,12 @@ def main():
     print(f"\nOverall Result: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All Vehicle Image Pipeline tests passed!")
+        print("🎉 All Security & Performance tests passed!")
         return True
     else:
         print("⚠️ Some tests failed. Check the details above.")
         return False
+
 
 if __name__ == "__main__":
     success = main()

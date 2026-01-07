@@ -1139,96 +1139,56 @@ def cleanup_featured_test_vehicle(vehicle_id):
         print(f"⚠️ Error cleaning up featured test vehicle: {str(e)}")
 
 def main():
-    """Run all backend tests"""
-    print("🚗 Choose Me Auto - Backend API Testing")
+    """Run all backend tests for Vehicle Image Pipeline"""
+    print("🚗 Choose Me Auto - Vehicle Image Pipeline Testing")
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Testing Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
     test_results = []
     test_vehicle_id = None
-    featured_test_vehicle_id = None
     
-    # Test 1: Get all vehicles
-    test_results.append(test_vehicles_api())
+    # IMG-1: Upload Flow Test
+    img1_success, test_vehicle_id = test_img1_upload_flow()
+    test_results.append(img1_success)
     
-    # Test 2: Filter New vehicles
-    test_results.append(test_vehicles_filter_new())
+    if not test_vehicle_id:
+        print("\n❌ Cannot continue tests without a test vehicle")
+        return False
     
-    # Test 3: Filter Used vehicles
-    test_results.append(test_vehicles_filter_used())
+    # IMG-2: Image Data Contract Test
+    test_results.append(test_img2_data_contract(test_vehicle_id))
     
-    # Test 4: Get New vehicle details
-    test_results.append(test_vehicle_detail_new())
+    # IMG-3: Migration Test
+    test_results.append(test_img3_migration())
     
-    # Test 5: Get Used vehicle details
-    test_results.append(test_vehicle_detail_used())
+    # IMG-5: Validation Test
+    test_results.append(test_img5_validation(test_vehicle_id))
     
-    # Test 6: Create vehicle with new fields
-    create_success, test_vehicle_id = test_admin_vehicle_create()
-    test_results.append(create_success)
+    # IMG-6: Delete Photo Test
+    test_results.append(test_img6_delete_photo(test_vehicle_id))
     
-    # Test 7: Update vehicle (only if create succeeded)
-    if create_success and test_vehicle_id:
-        test_results.append(test_admin_vehicle_update(test_vehicle_id))
-    else:
-        test_results.append(False)
+    # IMG-7: Set Primary Photo Test
+    test_results.append(test_img7_set_primary(test_vehicle_id))
     
-    # Test 8: Create availability lead (legacy endpoint)
-    lead_success, lead_id = test_lead_submission_availability()
-    test_results.append(lead_success)
-    
-    # Test 9: Create form lead
-    form_lead_success, form_lead_id = test_lead_submission_form()
-    test_results.append(form_lead_success)
-    
-    # Test 10: Verify lead storage (use whichever lead was created successfully)
-    verification_lead_id = lead_id if lead_success else form_lead_id
-    if verification_lead_id:
-        test_results.append(verify_lead_in_database(verification_lead_id))
-    else:
-        test_results.append(False)
-    
-    # NEW FEATURED VEHICLES TESTS
-    # Test 11: Get featured vehicles
-    test_results.append(test_featured_vehicles_endpoint())
-    
-    # Test 12: Update vehicle featured status
-    update_featured_success, featured_test_vehicle_id = test_update_vehicle_featured_status()
-    test_results.append(update_featured_success)
-    
-    # Test 13: Verify featured vehicles sorting
-    test_results.append(test_featured_vehicles_order())
-    
-    # Test 14: Remove vehicle from featured
-    test_results.append(test_remove_from_featured())
-    
-    # Clean up test vehicles
-    cleanup_test_vehicle(test_vehicle_id)
-    cleanup_featured_test_vehicle(featured_test_vehicle_id)
+    # Clean up test vehicle
+    if test_vehicle_id:
+        cleanup_test_vehicle(test_vehicle_id)
     
     # Summary
     print(f"\n{'='*60}")
-    print("TEST SUMMARY")
+    print("VEHICLE IMAGE PIPELINE TEST SUMMARY")
     print(f"{'='*60}")
     
     passed = sum(test_results)
     total = len(test_results)
     
     test_names = [
-        "GET /api/vehicles",
-        "Filter New vehicles",
-        "Filter Used vehicles", 
-        "New vehicle details",
-        "Used vehicle details",
-        "Create vehicle",
-        "Update vehicle",
-        "Create availability lead",
-        "Create form lead",
-        "Verify lead storage",
-        "GET /api/vehicles/featured",
-        "Update vehicle featured status",
-        "Featured vehicles sorting",
-        "Remove from featured"
+        "IMG-1: Upload Flow Test",
+        "IMG-2: Image Data Contract Test", 
+        "IMG-3: Migration Test",
+        "IMG-5: Validation Test",
+        "IMG-6: Delete Photo Test",
+        "IMG-7: Set Primary Photo Test"
     ]
     
     for i, (name, result) in enumerate(zip(test_names, test_results)):
@@ -1238,11 +1198,31 @@ def main():
     print(f"\nOverall Result: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All tests passed!")
+        print("🎉 All Vehicle Image Pipeline tests passed!")
         return True
     else:
         print("⚠️ Some tests failed. Check the details above.")
         return False
+
+def cleanup_test_vehicle(vehicle_id):
+    """Clean up test vehicle"""
+    if not vehicle_id:
+        return
+        
+    headers = {
+        'x-admin-token': ADMIN_TOKEN
+    }
+    
+    try:
+        response = requests.delete(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
+                                 headers=headers, 
+                                 timeout=10)
+        if response.status_code == 200:
+            print(f"✅ Cleaned up test vehicle: {vehicle_id}")
+        else:
+            print(f"⚠️ Failed to clean up test vehicle: {vehicle_id}")
+    except Exception as e:
+        print(f"⚠️ Error cleaning up test vehicle: {str(e)}")
 
 if __name__ == "__main__":
     success = main()

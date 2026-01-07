@@ -44,7 +44,6 @@ def print_result(test_name, success, details=""):
 
 # S0.1: Credential Rotation Test
 def test_s01_credential_rotation():
-def test_s01_credential_rotation():
     """S0.1: Test credential rotation and rate limiting"""
     print_test_header("S0.1: Credential Rotation Test")
     

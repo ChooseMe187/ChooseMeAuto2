@@ -31,7 +31,11 @@ class VehicleCreate(BaseModel):
     # Call for Availability toggle
     call_for_availability_enabled: bool = False
     
+    # Featured flags
     is_featured: bool = False
+    is_featured_homepage: bool = False
+    featured_rank: Optional[int] = None
+    
     is_active: bool = True
 
 
@@ -63,7 +67,11 @@ class VehicleUpdate(BaseModel):
     # Call for Availability toggle
     call_for_availability_enabled: Optional[bool] = None
     
+    # Featured flags
     is_featured: Optional[bool] = None
+    is_featured_homepage: Optional[bool] = None
+    featured_rank: Optional[int] = None
+    
     is_active: Optional[bool] = None
 
 
@@ -96,7 +104,11 @@ class VehicleInDB(BaseModel):
     # Call for Availability toggle
     call_for_availability_enabled: bool = False
     
+    # Featured flags
     is_featured: bool = False
+    is_featured_homepage: bool = False
+    featured_rank: Optional[int] = None
+    
     is_active: bool = True
     
     photo_urls: List[str] = []

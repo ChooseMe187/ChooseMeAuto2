@@ -424,6 +424,203 @@ def verify_lead_in_database(lead_id):
         print_result("Verify lead storage", False, f"Exception: {str(e)}")
         return False
 
+def test_featured_vehicles_endpoint():
+    """Test 11: GET /api/vehicles/featured - should return only featured vehicles"""
+    print_test_header("GET /api/vehicles/featured - Featured vehicles endpoint")
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/vehicles/featured?limit=8", timeout=10)
+        
+        if response.status_code != 200:
+            print_result("Featured vehicles endpoint", False, f"Status code: {response.status_code}")
+            return False
+            
+        vehicles = response.json()
+        
+        if not isinstance(vehicles, list):
+            print_result("Featured vehicles endpoint", False, "Response is not a list")
+            return False
+            
+        # Check that all returned vehicles have is_featured_homepage=true
+        for vehicle in vehicles:
+            if not vehicle.get('is_featured_homepage'):
+                print_result("Featured vehicles endpoint", False, f"Vehicle {vehicle.get('stock_id')} is not featured")
+                return False
+                
+            # Check required fields are present
+            required_fields = ['is_featured_homepage', 'featured_rank', 'primary_image_url', 'price', 'mileage']
+            for field in required_fields:
+                if field not in vehicle:
+                    print_result("Featured vehicles endpoint", False, f"Missing field: {field}")
+                    return False
+                    
+        print_result("Featured vehicles endpoint", True, f"Returned {len(vehicles)} featured vehicles with all required fields")
+        return True, vehicles
+        
+    except Exception as e:
+        print_result("Featured vehicles endpoint", False, f"Exception: {str(e)}")
+        return False, []
+
+def test_update_vehicle_featured_status():
+    """Test 12: PATCH /api/admin/vehicles/{id} - Update vehicle featured status"""
+    print_test_header("PATCH /api/admin/vehicles/{id} - Update featured status")
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'x-admin-token': ADMIN_TOKEN
+    }
+    
+    # First, get a non-featured vehicle to update
+    try:
+        response = requests.get(f"{BACKEND_URL}/vehicles", timeout=10)
+        if response.status_code != 200:
+            print_result("Update featured status", False, "Could not get vehicles list")
+            return False, None
+            
+        vehicles = response.json()
+        non_featured_vehicle = None
+        
+        for vehicle in vehicles:
+            if not vehicle.get('is_featured_homepage', False):
+                non_featured_vehicle = vehicle
+                break
+                
+        if not non_featured_vehicle:
+            print_result("Update featured status", False, "No non-featured vehicle found to test with")
+            return False, None
+            
+        vehicle_id = non_featured_vehicle['id']
+        
+        # Update vehicle to be featured
+        update_data = {
+            "is_featured_homepage": True,
+            "featured_rank": 99
+        }
+        
+        response = requests.patch(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
+                                headers=headers, 
+                                json=update_data, 
+                                timeout=10)
+        
+        if response.status_code != 200:
+            print_result("Update featured status", False, f"Status code: {response.status_code}, Response: {response.text}")
+            return False, None
+            
+        updated_vehicle = response.json()
+        
+        # Verify updates were applied
+        if not updated_vehicle.get('is_featured_homepage'):
+            print_result("Update featured status", False, "is_featured_homepage not set to true")
+            return False, None
+            
+        if updated_vehicle.get('featured_rank') != 99:
+            print_result("Update featured status", False, f"featured_rank: expected 99, got {updated_vehicle.get('featured_rank')}")
+            return False, None
+            
+        print_result("Update featured status", True, f"Vehicle {vehicle_id} successfully updated to featured")
+        return True, vehicle_id
+        
+    except Exception as e:
+        print_result("Update featured status", False, f"Exception: {str(e)}")
+        return False, None
+
+def test_featured_vehicles_order():
+    """Test 13: Verify featured vehicles are sorted by featured_rank"""
+    print_test_header("Featured vehicles sorting by rank")
+    
+    try:
+        response = requests.get(f"{BACKEND_URL}/vehicles/featured?limit=8", timeout=10)
+        
+        if response.status_code != 200:
+            print_result("Featured vehicles sorting", False, f"Status code: {response.status_code}")
+            return False
+            
+        vehicles = response.json()
+        
+        if len(vehicles) < 2:
+            print_result("Featured vehicles sorting", True, "Less than 2 vehicles, sorting test not applicable")
+            return True
+            
+        # Check that vehicles are sorted by featured_rank (nulls last)
+        prev_rank = None
+        for vehicle in vehicles:
+            current_rank = vehicle.get('featured_rank')
+            
+            if prev_rank is not None and current_rank is not None:
+                if current_rank < prev_rank:
+                    print_result("Featured vehicles sorting", False, f"Vehicles not sorted by rank: {prev_rank} -> {current_rank}")
+                    return False
+                    
+            prev_rank = current_rank
+            
+        print_result("Featured vehicles sorting", True, "Vehicles properly sorted by featured_rank")
+        return True
+        
+    except Exception as e:
+        print_result("Featured vehicles sorting", False, f"Exception: {str(e)}")
+        return False
+
+def test_remove_from_featured():
+    """Test 14: Remove vehicle from featured list"""
+    print_test_header("Remove vehicle from featured list")
+    
+    headers = {
+        'Content-Type': 'application/json',
+        'x-admin-token': ADMIN_TOKEN
+    }
+    
+    try:
+        # Get featured vehicles first
+        response = requests.get(f"{BACKEND_URL}/vehicles/featured?limit=8", timeout=10)
+        if response.status_code != 200:
+            print_result("Remove from featured", False, "Could not get featured vehicles")
+            return False
+            
+        featured_vehicles = response.json()
+        if len(featured_vehicles) == 0:
+            print_result("Remove from featured", False, "No featured vehicles to test with")
+            return False
+            
+        # Pick the first featured vehicle to remove
+        vehicle_to_remove = featured_vehicles[0]
+        vehicle_id = vehicle_to_remove['id']
+        
+        # Update vehicle to remove from featured
+        update_data = {
+            "is_featured_homepage": False,
+            "featured_rank": None
+        }
+        
+        response = requests.patch(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
+                                headers=headers, 
+                                json=update_data, 
+                                timeout=10)
+        
+        if response.status_code != 200:
+            print_result("Remove from featured", False, f"Status code: {response.status_code}")
+            return False
+            
+        # Verify it no longer appears in featured list
+        response = requests.get(f"{BACKEND_URL}/vehicles/featured?limit=8", timeout=10)
+        if response.status_code != 200:
+            print_result("Remove from featured", False, "Could not verify removal")
+            return False
+            
+        updated_featured = response.json()
+        
+        # Check that the vehicle is no longer in the featured list
+        for vehicle in updated_featured:
+            if vehicle['id'] == vehicle_id:
+                print_result("Remove from featured", False, "Vehicle still appears in featured list")
+                return False
+                
+        print_result("Remove from featured", True, f"Vehicle {vehicle_id} successfully removed from featured")
+        return True
+        
+    except Exception as e:
+        print_result("Remove from featured", False, f"Exception: {str(e)}")
+        return False
+
 def cleanup_test_vehicle(vehicle_id):
     """Clean up test vehicle"""
     if not vehicle_id:
@@ -443,6 +640,34 @@ def cleanup_test_vehicle(vehicle_id):
             print(f"⚠️ Failed to clean up test vehicle: {vehicle_id}")
     except Exception as e:
         print(f"⚠️ Error cleaning up test vehicle: {str(e)}")
+
+def cleanup_featured_test_vehicle(vehicle_id):
+    """Clean up featured test vehicle by removing from featured"""
+    if not vehicle_id:
+        return
+        
+    headers = {
+        'Content-Type': 'application/json',
+        'x-admin-token': ADMIN_TOKEN
+    }
+    
+    try:
+        # Remove from featured instead of deleting
+        update_data = {
+            "is_featured_homepage": False,
+            "featured_rank": None
+        }
+        
+        response = requests.patch(f"{BACKEND_URL}/admin/vehicles/{vehicle_id}", 
+                                headers=headers, 
+                                json=update_data, 
+                                timeout=10)
+        if response.status_code == 200:
+            print(f"✅ Cleaned up featured test vehicle: {vehicle_id}")
+        else:
+            print(f"⚠️ Failed to clean up featured test vehicle: {vehicle_id}")
+    except Exception as e:
+        print(f"⚠️ Error cleaning up featured test vehicle: {str(e)}")
 
 def main():
     """Run all backend tests"""

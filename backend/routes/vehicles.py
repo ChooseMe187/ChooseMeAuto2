@@ -76,6 +76,7 @@ async def get_featured_vehicles(limit: int = Query(8, ge=1, le=20)):
         "mileage": 1,
         "condition": 1,
         "photo_urls": 1,
+        "is_featured_homepage": 1,
         "featured_rank": 1,
         "created_at": 1,
     }

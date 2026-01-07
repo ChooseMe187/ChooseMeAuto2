@@ -1,6 +1,9 @@
 import React, { useState, useRef } from "react";
 import "../../styles/admin.css";
 
+const MAX_FILE_SIZE_MB = 8;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
 const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
   const isEditing = !!editingVehicle;
   const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
@@ -22,7 +25,7 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
   const [drivetrain, setDrivetrain] = useState(editingVehicle?.drivetrain || "");
   const [engine, setEngine] = useState(editingVehicle?.engine || "");
   
-  // New fields
+  // Document fields
   const [carfaxUrl, setCarfaxUrl] = useState(editingVehicle?.carfax_url || "");
   const [windowStickerUrl, setWindowStickerUrl] = useState(editingVehicle?.window_sticker_url || "");
   const [callForAvailabilityEnabled, setCallForAvailabilityEnabled] = useState(
@@ -37,26 +40,117 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
     editingVehicle?.featured_rank?.toString() || ""
   );
 
+  // Photo state - now supports images[] array format
   const [files, setFiles] = useState([]);
-  const [existingPhotos, setExistingPhotos] = useState(editingVehicle?.photo_urls || []);
+  const [existingImages, setExistingImages] = useState(
+    editingVehicle?.images || editingVehicle?.photo_urls?.map((url, i) => ({
+      url,
+      is_primary: i === 0,
+      upload_id: `legacy-${i}`,
+    })) || []
+  );
+  const [uploadProgress, setUploadProgress] = useState(null);
   const [status, setStatus] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Validate files before adding
+  const validateFiles = (fileList) => {
+    const errors = [];
+    const validFiles = [];
+
+    for (const file of fileList) {
+      // Check type
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        errors.push(`${file.name}: Invalid type. Use JPG, PNG, or WebP.`);
+        continue;
+      }
+
+      // Check size
+      const sizeMB = file.size / (1024 * 1024);
+      if (sizeMB > MAX_FILE_SIZE_MB) {
+        errors.push(`${file.name}: Too large (${sizeMB.toFixed(1)}MB). Max ${MAX_FILE_SIZE_MB}MB.`);
+        continue;
+      }
+
+      validFiles.push(file);
+    }
+
+    if (errors.length > 0) {
+      setStatus(`⚠️ ${errors.join(' ')}`);
+    }
+
+    return validFiles;
+  };
+
   const handleFileChange = (e) => {
     if (!e.target.files) return;
-    setFiles(Array.from(e.target.files));
+    const validFiles = validateFiles(Array.from(e.target.files));
+    setFiles((prev) => [...prev, ...validFiles]);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     if (e.dataTransfer.files) {
-      setFiles(Array.from(e.dataTransfer.files));
+      const validFiles = validateFiles(Array.from(e.dataTransfer.files));
+      setFiles((prev) => [...prev, ...validFiles]);
     }
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+  };
+
+  const removeSelectedFile = (index) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const deleteExistingPhoto = async (imageIndex) => {
+    if (!editingVehicle?.id) return;
+    
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/vehicles/${editingVehicle.id}/photos/${imageIndex}`,
+        {
+          method: "DELETE",
+          headers: { "x-admin-token": token },
+        }
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        setExistingImages(data.images || []);
+        setStatus("✅ Photo deleted");
+      } else {
+        setStatus("❌ Failed to delete photo");
+      }
+    } catch (err) {
+      setStatus("❌ Error deleting photo");
+    }
+  };
+
+  const setPrimaryPhoto = async (imageIndex) => {
+    if (!editingVehicle?.id) return;
+    
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/admin/vehicles/${editingVehicle.id}/photos/${imageIndex}/primary`,
+        {
+          method: "PATCH",
+          headers: { "x-admin-token": token },
+        }
+      );
+      
+      if (res.ok) {
+        const data = await res.json();
+        setExistingImages(data.images || []);
+        setStatus("✅ Primary photo updated");
+      } else {
+        setStatus("❌ Failed to set primary photo");
+      }
+    } catch (err) {
+      setStatus("❌ Error setting primary photo");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -103,7 +197,7 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
-          setStatus(data.detail || "Failed to update vehicle.");
+          setStatus(`❌ ${data.detail || "Failed to update vehicle."}`);
           setIsSaving(false);
           return;
         }
@@ -120,7 +214,7 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
 
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
-          setStatus(data.detail || "Failed to create vehicle.");
+          setStatus(`❌ ${data.detail || "Failed to create vehicle."}`);
           setIsSaving(false);
           return;
         }
@@ -131,6 +225,8 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
 
       // Upload photos if any
       if (files.length > 0 && vehicleId) {
+        setUploadProgress(`Uploading ${files.length} photo(s)...`);
+        
         const formData = new FormData();
         files.forEach((file) => formData.append("files", file));
 
@@ -141,14 +237,23 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
         });
 
         if (!photoRes.ok) {
-          setStatus("Vehicle saved, but photo upload failed.");
+          const errorData = await photoRes.json().catch(() => ({}));
+          setStatus(`⚠️ Vehicle saved, but photo upload failed: ${errorData.detail?.message || 'Unknown error'}`);
+          setUploadProgress(null);
           setIsSaving(false);
           onSuccess();
           return;
         }
+
+        const photoData = await photoRes.json();
+        setUploadProgress(null);
+        
+        if (photoData.errors?.length > 0) {
+          setStatus(`⚠️ ${photoData.message}. Some files had errors.`);
+        }
       }
 
-      setStatus(isEditing ? "Vehicle updated successfully!" : "Vehicle created successfully!");
+      setStatus(isEditing ? "✅ Vehicle updated successfully!" : "✅ Vehicle created successfully!");
       setIsSaving(false);
       
       // Call success callback after short delay
@@ -156,7 +261,8 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
 
     } catch (err) {
       console.error(err);
-      setStatus("Something went wrong.");
+      setStatus("❌ Something went wrong. Please try again.");
+      setUploadProgress(null);
       setIsSaving(false);
     }
   };
@@ -398,17 +504,47 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
         {/* Section 5: Photos */}
         <div className="admin-form-section">
           <h3>Photos & Media</h3>
+          <p className="admin-field-hint" style={{ marginBottom: "1rem" }}>
+            Supported formats: JPG, PNG, WebP (max {MAX_FILE_SIZE_MB}MB each). 
+            Images are automatically optimized for web display.
+          </p>
           
           {/* Existing Photos */}
-          {existingPhotos.length > 0 && (
+          {existingImages.length > 0 && (
             <div className="admin-existing-photos">
-              <label>Current Photos</label>
+              <label>Current Photos ({existingImages.length})</label>
               <div className="admin-photo-grid">
-                {existingPhotos.map((url, index) => (
-                  <div key={index} className="admin-photo-item">
-                    <img src={url} alt={`Photo ${index + 1}`} />
-                  </div>
-                ))}
+                {existingImages.map((img, index) => {
+                  const url = typeof img === 'string' ? img : img.url;
+                  const isPrimary = typeof img === 'object' && img.is_primary;
+                  
+                  return (
+                    <div key={index} className={`admin-photo-item ${isPrimary ? 'is-primary' : ''}`}>
+                      <img src={url} alt={`Photo ${index + 1}`} />
+                      {isPrimary && <span className="primary-badge">Primary</span>}
+                      <div className="admin-photo-actions">
+                        {!isPrimary && (
+                          <button
+                            type="button"
+                            className="photo-action-btn"
+                            onClick={() => setPrimaryPhoto(index)}
+                            title="Set as primary"
+                          >
+                            ⭐
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="photo-action-btn delete"
+                          onClick={() => deleteExistingPhoto(index)}
+                          title="Delete photo"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -423,7 +559,7 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               multiple
               onChange={handleFileChange}
               style={{ display: "none" }}
@@ -431,16 +567,27 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
             <div className="admin-dropzone-content">
               <span className="admin-dropzone-icon">📷</span>
               <p>Drag & drop photos here or click to browse</p>
-              <p className="admin-dropzone-hint">Supports JPG, PNG, WebP</p>
+              <p className="admin-dropzone-hint">
+                JPG, PNG, WebP • Max {MAX_FILE_SIZE_MB}MB each
+              </p>
             </div>
           </div>
 
           {files.length > 0 && (
             <div className="admin-selected-files">
-              <p>{files.length} file(s) selected:</p>
+              <p><strong>{files.length} file(s) ready to upload:</strong></p>
               <ul>
                 {files.map((file, i) => (
-                  <li key={i}>{file.name}</li>
+                  <li key={i}>
+                    {file.name} ({(file.size / (1024 * 1024)).toFixed(2)}MB)
+                    <button
+                      type="button"
+                      className="remove-file-btn"
+                      onClick={() => removeSelectedFile(i)}
+                    >
+                      ✕
+                    </button>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -449,8 +596,11 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
 
         {/* Actions */}
         <div className="admin-form-actions">
+          {uploadProgress && (
+            <p className="admin-progress">{uploadProgress}</p>
+          )}
           {status && (
-            <p className={status.includes("success") ? "admin-success" : "admin-error"}>
+            <p className={status.includes("✅") ? "admin-success" : status.includes("⚠️") ? "admin-warning" : "admin-error"}>
               {status}
             </p>
           )}

@@ -236,11 +236,8 @@ async def get_vehicles(
 @router.get("/vehicles/{stock_id}")
 async def get_vehicle_by_stock_id(stock_id: str):
     """
-    Return a single vehicle for the VDP.
-
-    Frontend-next should call:
-    - /api/vehicles/{stock_id}
-      matching /vehicle/[stock_id] route.
+    Return a single vehicle for the VDP (Vehicle Detail Page).
+    Returns full image data for gallery view.
     """
     coll = get_vehicles_collection()
     

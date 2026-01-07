@@ -84,6 +84,8 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
         carfax_url: carfaxUrl || null,
         window_sticker_url: windowStickerUrl || null,
         call_for_availability_enabled: callForAvailabilityEnabled,
+        is_featured_homepage: isFeaturedHomepage,
+        featured_rank: featuredRank ? parseInt(featuredRank) : null,
       };
 
       let vehicleId = editingVehicle?.id;

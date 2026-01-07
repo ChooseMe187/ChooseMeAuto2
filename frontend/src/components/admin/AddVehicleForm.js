@@ -28,6 +28,14 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
   const [callForAvailabilityEnabled, setCallForAvailabilityEnabled] = useState(
     editingVehicle?.call_for_availability_enabled || false
   );
+  
+  // Featured on Homepage
+  const [isFeaturedHomepage, setIsFeaturedHomepage] = useState(
+    editingVehicle?.is_featured_homepage || false
+  );
+  const [featuredRank, setFeaturedRank] = useState(
+    editingVehicle?.featured_rank?.toString() || ""
+  );
 
   const [files, setFiles] = useState([]);
   const [existingPhotos, setExistingPhotos] = useState(editingVehicle?.photo_urls || []);

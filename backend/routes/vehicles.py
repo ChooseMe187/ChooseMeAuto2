@@ -255,4 +255,5 @@ async def get_vehicle_by_stock_id(stock_id: str):
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     
-    return serialize_to_public_vehicle(vehicle)
+    # Use full detail serializer for VDP (includes all images)
+    return serialize_to_public_vehicle_detail(vehicle)

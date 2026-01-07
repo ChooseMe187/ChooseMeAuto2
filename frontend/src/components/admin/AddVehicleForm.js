@@ -362,7 +362,40 @@ const AddVehicleForm = ({ token, onClose, onSuccess, editingVehicle }) => {
           </div>
         </div>
 
-        {/* Section 4: Photos */}
+        {/* Section 4: Homepage Featured */}
+        <div className="admin-form-section">
+          <h3>Homepage Feature</h3>
+          <div className="admin-field admin-toggle-field">
+            <label className="admin-toggle-label">
+              <input
+                type="checkbox"
+                checked={isFeaturedHomepage}
+                onChange={(e) => setIsFeaturedHomepage(e.target.checked)}
+              />
+              <span className="admin-toggle-slider"></span>
+              <span className="admin-toggle-text">Feature on Homepage</span>
+            </label>
+            <span className="admin-field-hint">Display this vehicle in the Featured Vehicles section on the homepage</span>
+          </div>
+          
+          {isFeaturedHomepage && (
+            <div className="admin-field" style={{ marginTop: "1rem" }}>
+              <label>Display Order (Optional)</label>
+              <input
+                type="number"
+                value={featuredRank}
+                onChange={(e) => setFeaturedRank(e.target.value)}
+                placeholder="1, 2, 3... (lower = first)"
+                min="1"
+                max="99"
+                style={{ maxWidth: "200px" }}
+              />
+              <span className="admin-field-hint">Lower numbers appear first. Leave empty for default ordering.</span>
+            </div>
+          )}
+        </div>
+
+        {/* Section 5: Photos */}
         <div className="admin-form-section">
           <h3>Photos & Media</h3>
           

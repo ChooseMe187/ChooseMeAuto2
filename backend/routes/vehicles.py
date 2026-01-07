@@ -209,7 +209,7 @@ async def get_vehicles(
             price_query["$lte"] = max_price
         query["price"] = price_query
     
-    # Projection for required fields only
+    # Projection for list view (lightweight, thumbnails only)
     projection = {
         "_id": 1,
         "stock_number": 1,
@@ -221,22 +221,16 @@ async def get_vehicles(
         "price": 1,
         "mileage": 1,
         "body_style": 1,
-        "drivetrain": 1,
-        "exterior_color": 1,
-        "interior_color": 1,
         "condition": 1,
-        "photo_urls": 1,
-        "carfax_url": 1,
-        "window_sticker_url": 1,
-        "call_for_availability_enabled": 1,
-        "is_active": 1,
-        "created_at": 1,
+        "images": 1,  # For thumbnail extraction
+        "is_featured_homepage": 1,
     }
     
     cursor = coll.find(query, projection).sort("created_at", -1).limit(200)
     vehicles = await cursor.to_list(200)
     
-    return [serialize_to_public_vehicle(v) for v in vehicles]
+    # Use lightweight serializer for faster list loading
+    return [serialize_to_public_vehicle_list(v) for v in vehicles]
 
 
 @router.get("/vehicles/{stock_id}")

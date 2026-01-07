@@ -455,11 +455,11 @@ def test_featured_vehicles_endpoint():
                     return False
                     
         print_result("Featured vehicles endpoint", True, f"Returned {len(vehicles)} featured vehicles with all required fields")
-        return True, vehicles
+        return True
         
     except Exception as e:
         print_result("Featured vehicles endpoint", False, f"Exception: {str(e)}")
-        return False, []
+        return False
 
 def test_update_vehicle_featured_status():
     """Test 12: PATCH /api/admin/vehicles/{id} - Update vehicle featured status"""

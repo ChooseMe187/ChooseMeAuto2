@@ -250,3 +250,93 @@
     margin-bottom: 2rem;
   }
 }
+
+/* Trust Section */
+.cma-trust-section {
+  max-width: 1120px;
+  margin: 3rem auto 0;
+  padding: 2rem 1.5rem;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(55, 65, 81, 0.8);
+}
+
+.cma-trust-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+.cma-trust-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f9fafb;
+  margin-bottom: 1.25rem;
+}
+
+.cma-trust-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cma-trust-list li {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.trust-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.cma-trust-list li strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #e5e7eb;
+  margin-bottom: 0.15rem;
+}
+
+.cma-trust-list li p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.cma-trust-image {
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.cma-trust-image img {
+  width: 100%;
+  height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .cma-trust-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .cma-trust-image {
+    order: -1;
+  }
+
+  .cma-trust-image img {
+    height: 200px;
+  }
+}
+
+/* Quick Links - 4 columns for new vehicles link */
+@media (min-width: 721px) {
+  .cma-quick-links {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

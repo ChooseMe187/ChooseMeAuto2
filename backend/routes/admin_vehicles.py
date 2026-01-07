@@ -215,6 +215,8 @@ async def delete_vehicle(vehicle_id: str, _: bool = Depends(require_admin)):
 
 
 # Upload Photos - NEW IMPLEMENTATION with Base64 storage
+MAX_IMAGES_PER_VEHICLE = int(os.environ.get("MAX_IMAGES_PER_VEHICLE", "12"))
+
 @router.post("/vehicles/{vehicle_id}/photos")
 async def upload_vehicle_photos(
     vehicle_id: str,
@@ -227,7 +229,10 @@ async def upload_vehicle_photos(
     Images are processed, optimized, and stored as Base64 data URLs in MongoDB.
     This ensures persistence across deploys/restarts.
     
-    Accepts: JPG, PNG, WebP (max 8MB each)
+    Limits:
+    - Max 12 images per vehicle (configurable)
+    - Max 8MB per image
+    - Accepts: JPG, PNG, WebP
     """
     coll = get_vehicles_collection()
     
@@ -241,6 +246,20 @@ async def upload_vehicle_photos(
     
     # Get existing images
     existing_images = normalize_images_field(vehicle)
+    current_count = len(existing_images)
+    
+    # Check if adding these would exceed the limit
+    if current_count + len(files) > MAX_IMAGES_PER_VEHICLE:
+        remaining_slots = MAX_IMAGES_PER_VEHICLE - current_count
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": f"Image limit exceeded. Maximum {MAX_IMAGES_PER_VEHICLE} images per vehicle.",
+                "current_count": current_count,
+                "remaining_slots": remaining_slots,
+                "attempted_upload": len(files)
+            }
+        )
     
     uploaded_images = []
     errors = []

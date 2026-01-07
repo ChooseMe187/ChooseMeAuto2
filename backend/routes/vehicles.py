@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Query
 
 from models.vehicle import Vehicle
+from services.image_service import normalize_images_field
 
 router = APIRouter()
 
@@ -20,7 +21,26 @@ def get_vehicles_collection():
 
 def serialize_to_public_vehicle(doc) -> dict:
     """Convert MongoDB admin_vehicle document to public Vehicle format"""
-    photo_urls = doc.get("photo_urls", [])
+    # Normalize images to consistent format
+    images = normalize_images_field(doc)
+    
+    # Get primary image URL (first image or first with is_primary=True)
+    primary_url = None
+    other_urls = []
+    
+    for img in images:
+        url = img.get("url", "") if isinstance(img, dict) else img
+        if not primary_url:
+            if isinstance(img, dict) and img.get("is_primary"):
+                primary_url = url
+            elif not primary_url:
+                primary_url = url
+        else:
+            other_urls.append(url)
+    
+    # Build photo_urls list (primary first)
+    photo_urls = [primary_url] + other_urls if primary_url else other_urls
+    
     return {
         "stock_id": doc.get("stock_number") or str(doc.get("_id")),
         "id": str(doc.get("_id")),
@@ -36,10 +56,13 @@ def serialize_to_public_vehicle(doc) -> dict:
         "exterior_color": doc.get("exterior_color"),
         "interior_color": doc.get("interior_color"),
         "condition": doc.get("condition", "Used"),
-        "image_url": photo_urls[0] if photo_urls else None,
-        "image_urls": photo_urls[1:] if len(photo_urls) > 1 else [],
+        # Image URLs
+        "image_url": primary_url,
+        "image_urls": other_urls,
         "photo_urls": photo_urls,
-        "primary_image_url": photo_urls[0] if photo_urls else None,
+        "primary_image_url": primary_url,
+        # New images array with full metadata
+        "images": images,
         # Document & CTA fields
         "carfax_url": doc.get("carfax_url"),
         "window_sticker_url": doc.get("window_sticker_url"),

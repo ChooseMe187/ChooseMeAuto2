@@ -111,6 +111,8 @@ class VehicleInDB(BaseModel):
     
     is_active: bool = True
     
+    # Image fields
+    images: List[dict] = []
     photo_urls: List[str] = []
     created_at: datetime
     updated_at: datetime

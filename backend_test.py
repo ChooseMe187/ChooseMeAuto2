@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Choose Me Auto Car Dealership
-Tests the Vehicle Image Pipeline as specified in the review request.
+Tests the Security & Performance Updates as specified in the review request.
 """
 
 import requests
@@ -14,11 +14,14 @@ from PIL import Image
 
 # Get backend URL from frontend .env
 BACKEND_URL = "https://autodealership.preview.emergentagent.com/api"
-ADMIN_TOKEN = "cma-admin-2c8e1cd0f9b70c27827d310304fd7b4c"
+
+# Security Test Credentials
+OLD_ADMIN_TOKEN = "cma-admin-2c8e1cd0f9b70c27827d310304fd7b4c"  # Should be rejected
+NEW_ADMIN_TOKEN = "cma-admin-020f6b7ada4b976c76f6b2bd02cffe5cb08509e6ad2d22e2"  # Should work
+NEW_ADMIN_PASSWORD = "CMA_38d5c79bbdb6b28d95c0938dc0a844f6"
 
 # Test data
-NEW_VEHICLE_STOCK = "CMAEE34F7"  # 2025 Honda Accord
-USED_VEHICLE_STOCK = "CMA5A1BBF"  # 2023 Toyota Camry
+TEST_VEHICLE_STOCK = "CMASEC001"  # Security test vehicle
 
 def create_test_image(width=800, height=600, format='JPEG', color=(255, 0, 0)):
     """Create a test image in memory"""

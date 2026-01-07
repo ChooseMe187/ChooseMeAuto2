@@ -1,58 +1,80 @@
-# Test Result File - Choose Me Auto
+# Test Result File - Choose Me Auto Homepage Upgrade
 
-## Phase 2B Status
+## Features Implemented
 
-### Phase 2B.1 – Email Architecture: ✅ Complete
-- Alert module fully implemented (`/app/backend/utils/alerts.py`)
-- Email, SMS (Twilio), Slack notification channels ready
-- Email templates finalized with proper formatting
-- All functions return status: "sent" | "deferred" | "error" | "disabled"
+### H1 - Homepage "Featured Vehicles" Section ✅
+- Desktop: 4-card grid layout
+- Mobile: horizontal carousel with scroll
+- Vehicle cards include:
+  - Primary photo (with placeholder)
+  - Year/Make/Model/Trim
+  - Price + Mileage
+  - "NEW" and "HOT DEAL" badges
+  - Payment estimator (down payment + term)
+  - CTAs: View Details, Get Approved
 
-### Phase 2B.2 – Email Provider Activation: ⏸ Deferred
-- External dependency (SendGrid/SES/Postmark credentials)
-- One-line swap when provider access is restored:
-  - Set `ALERTS_ENABLED=true` in backend/.env
-  - Add SMTP credentials (SMTP_HOST, SMTP_USER, SMTP_PASS, ALERT_EMAIL_TO)
+### H2 - Payment Estimator Component ✅
+- Down payment input (default $2,000, range $0-$10,000)
+- Term selector: 36/48/60/72 months (default 72)
+- Live "Est. $/mo" calculation using 10.99% APR
+- Microcopy: "Based on $X down, Y months"
+- Compact version for cards, full version available
 
-## Verification Completed ✅
+### H3 - Backend: Featured Vehicles Endpoint ✅
+- `GET /api/vehicles/featured?limit=8`
+- Returns only vehicles with `is_featured_homepage=true`
+- Sorted by `featured_rank` then `created_at`
+- Includes all required fields
 
-1. ✅ **Forms still submit and save** - Leads stored in MongoDB
-2. ✅ **No errors thrown when email is deferred** - Graceful handling
-3. ✅ **Console logs clearly show "email deferred"** - `[ALERTS DISABLED]` or `[EMAIL DEFERRED]`
-4. ✅ **Easy one-line swap** - Just update .env variables
+### H4 - Admin: "Featured on Homepage" Toggle ✅
+- New "Homepage Feature" section in admin form
+- "Feature on Homepage" toggle checkbox
+- Optional "Display Order" number field
+- Saves to `is_featured_homepage` and `featured_rank` fields
 
-## API Endpoints
+### H5 - Homepage Integration ✅
+- Featured section placed below hero, above quick links
+- CTAs route correctly:
+  - "View Details" → /vehicle/:id
+  - "Get Approved" → /preapproved
+- Graceful fallback when no featured vehicles (hides section)
 
-### Notification Status
-- `GET /api/notifications/status` - Shows current notification channel status
+### H6 - Compliance Disclaimer ✅
+- Disclaimer under featured section:
+  "Estimated payments are for illustration only. Actual terms vary based on credit, approval, taxes, and fees."
 
-### Lead Submission Response
-```json
-{
-  "ok": true,
-  "message": "Lead captured successfully",
-  "id": "...",
-  "email_status": "disabled"  // or "deferred" when alerts enabled but no provider
-}
-```
+### Trust Section (Bonus) ✅
+- "Why Choose Us?" section with multicultural imagery
+- 4 trust points: Personalized Service, Guaranteed Approval, Transparent Pricing, Quality Vehicles
+- Bilingual support (EN/ES)
 
 ## Admin Credentials
 - URL: /admin
 - Password: ChooseMeAuto_dd60adca035e7469
 
-## To Enable Email Notifications
-Edit `/app/backend/.env`:
-```
-ALERTS_ENABLED=true
-ALERT_ON_NEW_LEAD=true
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USER=apikey
-SMTP_PASS=your-sendgrid-api-key
-ALERT_EMAIL_TO=admin@choosemeauto.com
-```
+## Test Data
+- 2 vehicles currently marked as featured:
+  1. 2025 Honda Accord (featured_rank: 1)
+  2. 2023 Toyota Camry (featured_rank: 2)
 
-## Files Modified
-- `/app/backend/utils/alerts.py` - Updated with clear DEFERRED status logging
-- `/app/backend/routes/leads.py` - Returns email_status in response
-- `/app/backend/server.py` - Added /api/notifications/status endpoint
+## API Endpoints
+- `GET /api/vehicles/featured?limit=8` - Featured vehicles
+- `PATCH /api/admin/vehicles/{id}` - Update vehicle (including featured flags)
+
+## Files Created/Modified
+- `/app/frontend/src/components/PaymentEstimator.js` - NEW
+- `/app/frontend/src/components/FeaturedVehicles.js` - NEW
+- `/app/frontend/src/styles/featured-vehicles.css` - NEW
+- `/app/frontend/src/pages/HomePage.js` - MODIFIED
+- `/app/frontend/src/styles/home.css` - MODIFIED
+- `/app/frontend/src/i18n/home.js` - MODIFIED
+- `/app/frontend/src/components/admin/AddVehicleForm.js` - MODIFIED
+- `/app/backend/models/vehicle_admin.py` - MODIFIED
+- `/app/backend/routes/vehicles.py` - MODIFIED
+- `/app/backend/routes/admin_vehicles.py` - MODIFIED
+
+## MVP Defaults
+- Default APR: 10.99%
+- Default Down Payment: $2,000
+- Default Term: 72 months
+- Featured limit: 8 vehicles

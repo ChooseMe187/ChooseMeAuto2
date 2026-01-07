@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
 Backend API Testing for Choose Me Auto Car Dealership
-Tests the newly implemented features as specified in the review request.
+Tests the Vehicle Image Pipeline as specified in the review request.
 """
 
 import requests
 import json
 import os
+import base64
+import io
 from datetime import datetime
+from PIL import Image
 
 # Get backend URL from frontend .env
 BACKEND_URL = "https://autodealership.preview.emergentagent.com/api"

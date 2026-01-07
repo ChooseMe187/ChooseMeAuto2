@@ -81,20 +81,22 @@ def serialize_vehicle(doc) -> dict:
 
 # Admin Login
 @router.post("/login", response_model=AdminLoginResponse)
-async def admin_login(request: AdminLoginRequest):
-    """Admin login endpoint"""
-    is_valid = await verify_admin_login(request.password)
-    if is_valid:
+async def admin_login(login_request: AdminLoginRequest, request: Request):
+    """Admin login endpoint with rate limiting"""
+    result = await verify_admin_login(login_request.password, request)
+    
+    if result["success"]:
         return AdminLoginResponse(
             success=True,
             token=ADMIN_TOKEN,
-            message="Login successful"
+            message=result["message"]
         )
-    return AdminLoginResponse(
-        success=False,
-        token=None,
-        message="Invalid password"
-    )
+    else:
+        return AdminLoginResponse(
+            success=False,
+            token=None,
+            message=result["message"]
+        )
 
 
 # Create Vehicle

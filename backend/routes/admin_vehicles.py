@@ -55,6 +55,8 @@ def serialize_vehicle(doc) -> dict:
         "window_sticker_url": doc.get("window_sticker_url"),
         "call_for_availability_enabled": doc.get("call_for_availability_enabled", False),
         "is_featured": doc.get("is_featured", False),
+        "is_featured_homepage": doc.get("is_featured_homepage", False),
+        "featured_rank": doc.get("featured_rank"),
         "is_active": doc.get("is_active", True),
         "photo_urls": doc.get("photo_urls", []),
         "created_at": doc.get("created_at", datetime.now(timezone.utc)),

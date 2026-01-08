@@ -124,7 +124,7 @@ def create_thumbnail(content: bytes) -> bytes:
     img.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
     
     output = BytesIO()
-    img.save(output, format='WEBP', quality=75, optimize=True)
+    img.save(output, format='WEBP', quality=THUMBNAIL_QUALITY, optimize=True)
     output.seek(0)
     
     return output.read()

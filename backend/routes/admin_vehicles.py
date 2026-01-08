@@ -554,3 +554,99 @@ async def migrate_all_images(_: bool = Depends(require_admin)):
         "skipped": skipped,
         "total": len(vehicles),
     }
+
+
+# ============================================================
+# CSV IMPORT ENDPOINTS
+# ============================================================
+
+# Rate limiting for CSV imports (simple in-memory tracker)
+csv_import_tracker = {}
+CSV_IMPORT_COOLDOWN_SECONDS = 30  # Minimum time between imports
+
+@router.post("/vehicles/import-csv")
+async def import_vehicles_csv(
+    request: Request,
+    file: UploadFile = File(...),
+    dry_run: bool = Query(default=True, description="Preview only, no database changes"),
+    _: bool = Depends(require_admin)
+):
+    """
+    Import vehicles from CSV file with upsert by VIN.
+    
+    - **dry_run=true**: Preview import (default) - validates and shows what would happen
+    - **dry_run=false**: Execute import - creates/updates vehicles in database
+    
+    VIN is the unique identifier. Existing VINs will be updated, new VINs will be created.
+    
+    Required CSV columns: vin, year, make, model, price
+    """
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    last_import = csv_import_tracker.get(client_ip, 0)
+    current_time = datetime.now(timezone.utc).timestamp()
+    
+    if not dry_run and (current_time - last_import) < CSV_IMPORT_COOLDOWN_SECONDS:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Please wait {CSV_IMPORT_COOLDOWN_SECONDS} seconds between imports"
+        )
+    
+    # Validate file type
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+    
+    if not file.filename.lower().endswith('.csv'):
+        raise HTTPException(status_code=400, detail="File must be a CSV file")
+    
+    # Read file content
+    try:
+        content = await file.read()
+    except Exception as e:
+        logger.error(f"CSV upload read error: {e}")
+        raise HTTPException(status_code=400, detail="Failed to read uploaded file")
+    
+    # Check file size
+    if len(content) > MAX_CSV_SIZE_MB * 1024 * 1024:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"File too large. Maximum size is {MAX_CSV_SIZE_MB}MB"
+        )
+    
+    # Process import
+    try:
+        result = await process_csv_import(content, db, dry_run=dry_run)
+        
+        # Update rate limit tracker on successful non-dry-run import
+        if not dry_run and result['success']:
+            csv_import_tracker[client_ip] = current_time
+            logger.info(f"CSV Import completed: {result['counts']}")
+        
+        return result
+        
+    except CSVValidationError as e:
+        logger.warning(f"CSV validation error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"CSV import error: {e}")
+        raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+@router.get("/vehicles/csv-template")
+async def download_csv_template(_: bool = Depends(require_admin)):
+    """
+    Download a CSV template with headers and a sample row.
+    
+    Use this template to prepare your vehicle inventory for import.
+    """
+    template_content = generate_csv_template()
+    
+    return StreamingResponse(
+        io.BytesIO(template_content.encode('utf-8')),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=vehicle_import_template.csv",
+            "X-Robots-Tag": "noindex, nofollow"
+        }
+    )
+

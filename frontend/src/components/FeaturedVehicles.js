@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import PaymentEstimator from "./PaymentEstimator";
+import { 
+  trackFeaturedVehicleView, 
+  trackFeaturedVehicleClick,
+  trackGetApprovedClick,
+  trackPaymentEstimatorChangeDebounced 
+} from "../utils/analytics";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 

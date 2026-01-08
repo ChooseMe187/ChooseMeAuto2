@@ -166,10 +166,14 @@ const FeaturedVehicles = () => {
 };
 
 // Individual Vehicle Card Component
-const FeaturedVehicleCard = ({ vehicle, lang, copy }) => {
+const FeaturedVehicleCard = ({ vehicle, lang, copy, position }) => {
+  const cardRef = useRef(null);
+  const hasTrackedView = useRef(false);
+  
   const {
     id,
     stock_id,
+    vin,
     year,
     make,
     model,
@@ -186,8 +190,66 @@ const FeaturedVehicleCard = ({ vehicle, lang, copy }) => {
   const title = `${year} ${make} ${model}`;
   const isNew = condition === "New";
 
+  // Track featured_vehicle_view when card enters viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasTrackedView.current) {
+            trackFeaturedVehicleView({
+              vehicleId: vehicleSlug,
+              vin: vin || '',
+              position: position,
+              sourcePage: 'homepage',
+            });
+            hasTrackedView.current = true;
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [vehicleSlug, vin, position]);
+
+  // Track featured_vehicle_click
+  const handleViewDetailsClick = () => {
+    trackFeaturedVehicleClick({
+      vehicleId: vehicleSlug,
+      vin: vin || '',
+      cta: 'view_details',
+      sourcePage: 'homepage',
+    });
+  };
+
+  // Track get_approved_click from featured card
+  const handleGetApprovedClick = () => {
+    trackGetApprovedClick({
+      vehicleId: vehicleSlug,
+      vin: vin || '',
+      sourcePage: 'homepage',
+      ctaLocation: 'featured_card',
+    });
+  };
+
+  // Track payment_estimator_change
+  const handlePaymentChange = ({ downPayment, term, monthlyPayment }) => {
+    trackPaymentEstimatorChangeDebounced({
+      vehicleId: vehicleSlug,
+      vin: vin || '',
+      downPayment: downPayment,
+      termMonths: term,
+      estimatedPayment: monthlyPayment,
+      sourcePage: 'homepage',
+    });
+  };
+
   return (
-    <div className="featured-vehicle-card">
+    <div className="featured-vehicle-card" ref={cardRef}>
       {/* Badges */}
       <div className="fv-badges">
         {isNew && <span className="fv-badge fv-badge-new">NEW</span>}

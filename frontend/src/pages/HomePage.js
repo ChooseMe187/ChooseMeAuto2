@@ -6,6 +6,16 @@ import FeaturedVehicles from "../components/FeaturedVehicles";
 import "../styles/home.css";
 import "../styles/featured-vehicles.css";
 
+// Multicultural dealership imagery (Unsplash/Pexels - commercially licensed)
+const TRUST_IMAGES = {
+  hero: "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&q=80",
+  consultation: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=600&q=80",
+  handshake: "https://images.unsplash.com/photo-1686771416282-3888ddaf249b?w=600&q=80",
+  showroom: "https://images.pexels.com/photos/2127039/pexels-photo-2127039.jpeg?auto=compress&cs=tinysrgb&w=600",
+  team: "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=600",
+  customer: "https://images.pexels.com/photos/7144191/pexels-photo-7144191.jpeg?auto=compress&cs=tinysrgb&w=600",
+};
+
 const HomePage = () => {
   const { lang } = useLanguage();
 
@@ -78,7 +88,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured Vehicles Section - NEW */}
+      {/* Featured Vehicles Section */}
       <FeaturedVehicles />
 
       {/* Quick Links */}
@@ -112,7 +122,7 @@ const HomePage = () => {
         </Link>
       </section>
 
-      {/* Trust Section - Customer Service Feel */}
+      {/* Trust Section - Customer Service Feel with Multicultural Imagery */}
       <section className="cma-trust-section">
         <div className="cma-trust-inner">
           <div className="cma-trust-content">
@@ -150,10 +160,84 @@ const HomePage = () => {
           </div>
           <div className="cma-trust-image">
             <img 
-              src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=600&q=80" 
-              alt={lang === "es" ? "Equipo de ventas atendiendo cliente" : "Sales team helping customer"}
+              src={TRUST_IMAGES.consultation}
+              alt={lang === "es" ? "Consultor de ventas con cliente" : "Sales consultant with customer"}
               loading="lazy"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Team & Service Section - Multicultural */}
+      <section className="cma-team-section">
+        <div className="cma-team-inner">
+          <h2>{lang === "es" ? "Nuestro Compromiso" : "Our Commitment"}</h2>
+          <p className="cma-team-subtitle">
+            {lang === "es" 
+              ? "Un equipo dedicado a hacer realidad tus sueños de conducir"
+              : "A dedicated team committed to making your driving dreams come true"
+            }
+          </p>
+          
+          <div className="cma-team-gallery">
+            <div className="team-image-card">
+              <img 
+                src={TRUST_IMAGES.handshake}
+                alt={lang === "es" ? "Apretón de manos cerrando trato" : "Handshake closing deal"}
+                loading="lazy"
+              />
+              <span className="team-image-label">
+                {lang === "es" ? "Atención Personalizada" : "Personal Attention"}
+              </span>
+            </div>
+            <div className="team-image-card">
+              <img 
+                src={TRUST_IMAGES.team}
+                alt={lang === "es" ? "Equipo profesional" : "Professional team"}
+                loading="lazy"
+              />
+              <span className="team-image-label">
+                {lang === "es" ? "Equipo Profesional" : "Professional Team"}
+              </span>
+            </div>
+            <div className="team-image-card">
+              <img 
+                src={TRUST_IMAGES.customer}
+                alt={lang === "es" ? "Clientes satisfechos" : "Satisfied customers"}
+                loading="lazy"
+              />
+              <span className="team-image-label">
+                {lang === "es" ? "Clientes Felices" : "Happy Customers"}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action Banner */}
+      <section className="cma-cta-banner">
+        <div className="cma-cta-inner">
+          <div className="cta-content">
+            <h2>
+              {lang === "es" 
+                ? "¿Listo para Conducir Tu Nuevo Auto?"
+                : "Ready to Drive Your New Car?"
+              }
+            </h2>
+            <p>
+              {lang === "es"
+                ? "Pre-aprobación en minutos. Sin afectar tu crédito."
+                : "Pre-approval in minutes. No impact to your credit."
+              }
+            </p>
+          </div>
+          <div className="cta-buttons">
+            <Link to="/preapproved" className="btn-primary-light">
+              {lang === "es" ? "Comenzar Ahora" : "Get Started"}
+            </Link>
+            <a href="tel:+12067861751" className="btn-call">
+              📞 (206) 786-1751
+            </a>
           </div>
         </div>
       </section>

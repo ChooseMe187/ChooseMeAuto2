@@ -36,6 +36,18 @@ backend:
         comment: "✅ TESTED: List endpoint (/api/vehicles) returns optimized response with only basic fields (stock_id, id, vin, year, make, model, trim, price, mileage, primary_image_url, body_style, condition) and excludes heavy fields (images, photo_urls, carfax_url, drivetrain). Detail endpoint (/api/vehicles/{stock_id}) returns complete data including all fields."
 
 frontend:
+  - task: "CSV Import Feature"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/admin/CSVImportModal.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: CSV Import feature fully functional. Admin vehicles page shows Import CSV button next to Add Vehicle. Modal opens correctly with Download CSV Template button (downloads vehicle_import_template.csv with 19 columns), file upload dropzone (accepts .csv files, 5MB limit), required columns list (vin, year, make, model, price), Cancel and Preview Import buttons. Mobile responsive (375px) - all elements visible and functional. Modal close functionality working via X button. All core CSV import UI components working perfectly."
+
   - task: "Homepage Hero Section"
     implemented: true
     working: true

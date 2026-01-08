@@ -5,6 +5,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
         <meta name="description" content="Choose Me Auto - Your trusted car dealership. Bad Credit OK, No Credit OK, First-Time Buyers Welcome." />
+        
+        <!-- Google Analytics 4 (GA4) -->
+        <!-- Replace GA_MEASUREMENT_ID with your actual GA4 ID (e.g., G-XXXXXXXXXX) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            // Configure GA4 with send_page_view disabled (we'll handle SPA routing manually)
+            gtag('config', 'GA_MEASUREMENT_ID', {
+                send_page_view: false
+            });
+        </script>
+        
         <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/

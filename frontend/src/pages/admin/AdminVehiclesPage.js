@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAdminAuth } from "../../context/AdminAuthContext";
 import AddVehicleForm from "../../components/admin/AddVehicleForm";
 import VehicleTable from "../../components/admin/VehicleTable";
+import CSVImportModal from "../../components/admin/CSVImportModal";
 import "../../styles/admin.css";
 
 const AdminVehiclesPage = () => {
@@ -9,6 +10,7 @@ const AdminVehiclesPage = () => {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
 
   const API_BASE = process.env.REACT_APP_BACKEND_URL || "";

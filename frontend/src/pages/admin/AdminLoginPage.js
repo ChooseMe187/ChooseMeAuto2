@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAdminAuth } from "../../context/AdminAuthContext";
+import { trackAdminLoginSuccess } from "../../utils/analytics";
 import "../../styles/admin.css";
 
 const AdminLoginPage = () => {
@@ -17,6 +18,9 @@ const AdminLoginPage = () => {
 
     if (!result.success) {
       setError(result.message || "Invalid password");
+    } else {
+      // Track admin_login_success event
+      trackAdminLoginSuccess();
     }
     setLoading(false);
   };

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Response
 from typing import List, Optional
 from datetime import datetime, timezone
 from bson import ObjectId
@@ -26,6 +26,14 @@ from services.image_service import (
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["admin-vehicles"])
+
+
+# Middleware to add X-Robots-Tag: noindex to all admin responses
+@router.middleware("http")
+async def add_noindex_header(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 # MongoDB connection - will be set in server.py
 db = None

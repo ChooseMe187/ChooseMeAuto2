@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { vehicleDetailCopy } from "../i18n/vehicleDetail";
 import CallForAvailabilityForm from "../components/CallForAvailabilityForm";
+import { trackGetApprovedClick, trackHoldVehicleSubmit } from "../utils/analytics";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 const DEALER_PHONE = "(206) 786-1751";

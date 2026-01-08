@@ -152,6 +152,7 @@ metadata:
 
 test_plan:
   current_focus:
+    - "CSV Import Feature"
     - "Homepage Hero Section"
     - "Featured Vehicles Section"
     - "Vehicle Detail Page (VDP)"

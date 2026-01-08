@@ -120,7 +120,21 @@ async def root_health():
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def api_root():
-    return {"message": "Choose Me Auto API", "version": "1.0.0"}
+    return {"message": "Choose Me Auto API", "version": APP_VERSION}
+
+
+@api_router.get("/version")
+async def api_version():
+    """
+    Returns build/version info for observability.
+    Useful for verifying deployments and debugging.
+    """
+    return {
+        "version": APP_VERSION,
+        "build_date": BUILD_DATE,
+        "service": "Choose Me Auto API",
+        "environment": os.environ.get("ENVIRONMENT", "development"),
+    }
 
 
 @api_router.get("/notifications/status")

@@ -18,10 +18,12 @@ import os
 logger = logging.getLogger(__name__)
 
 # Maximum image dimensions (resize larger images)
-MAX_WIDTH = 1200
-MAX_HEIGHT = 900
-THUMBNAIL_SIZE = (400, 300)
-MAX_FILE_SIZE_MB = int(os.environ.get("MAX_UPLOAD_MB", "8"))
+MAX_WIDTH = int(os.environ.get("IMAGE_MAX_WIDTH", "1920"))
+MAX_HEIGHT = int(os.environ.get("IMAGE_MAX_HEIGHT", "1440"))
+THUMBNAIL_SIZE = (600, 450)
+MAX_FILE_SIZE_MB = int(os.environ.get("MAX_UPLOAD_MB", "15"))
+IMAGE_QUALITY = int(os.environ.get("IMAGE_QUALITY", "92"))
+THUMBNAIL_QUALITY = int(os.environ.get("THUMBNAIL_QUALITY", "80"))
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
 

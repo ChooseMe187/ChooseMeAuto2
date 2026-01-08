@@ -130,8 +130,14 @@ const FeaturedVehicles = () => {
 
         {/* Carousel */}
         <div className="featured-carousel" ref={carouselRef}>
-          {vehicles.map((vehicle) => (
-            <FeaturedVehicleCard key={vehicle.id} vehicle={vehicle} lang={lang} copy={copy} />
+          {vehicles.map((vehicle, index) => (
+            <FeaturedVehicleCard 
+              key={vehicle.id} 
+              vehicle={vehicle} 
+              lang={lang} 
+              copy={copy} 
+              position={index + 1}
+            />
           ))}
         </div>
 

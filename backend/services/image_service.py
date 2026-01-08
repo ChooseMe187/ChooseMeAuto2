@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 MAX_WIDTH = 1200
 MAX_HEIGHT = 900
 THUMBNAIL_SIZE = (400, 300)
-MAX_FILE_SIZE_MB = 8
+MAX_FILE_SIZE_MB = int(os.environ.get("MAX_UPLOAD_MB", "8"))
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
 

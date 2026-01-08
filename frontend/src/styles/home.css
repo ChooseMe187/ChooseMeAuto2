@@ -340,3 +340,153 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+
+/* Team & Service Section - Multicultural Imagery */
+.cma-team-section {
+  max-width: 1120px;
+  margin: 2rem auto;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.cma-team-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f9fafb;
+  margin-bottom: 0.5rem;
+}
+
+.cma-team-subtitle {
+  color: #9ca3af;
+  font-size: 0.95rem;
+  margin-bottom: 2rem;
+}
+
+.cma-team-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.team-image-card {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.team-image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.team-image-card:hover img {
+  transform: scale(1.05);
+}
+
+.team-image-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* CTA Banner */
+.cma-cta-banner {
+  max-width: 1120px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+}
+
+.cma-cta-inner {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  border-radius: 1.5rem;
+  padding: 2rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.cta-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.5rem 0;
+}
+
+.cta-content p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.btn-primary-light {
+  background: white;
+  color: #059669;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary-light:hover {
+  background: #f0fdf4;
+  transform: translateY(-2px);
+}
+
+.btn-call {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-call:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .cma-team-gallery {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .cma-cta-inner {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-primary-light,
+  .btn-call {
+    text-align: center;
+  }
+}

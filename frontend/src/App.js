@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { trackPageView } from "./utils/analytics";
 
 // Navbar
 import NavBar from "./components/NavBar";
@@ -19,9 +20,21 @@ import ThankYouPage from "./pages/ThankYouPage";
 // Admin pages
 import AdminLayout from "./pages/admin/AdminLayout";
 
+// Analytics: Track page views on route changes
+function PageViewTracker() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    trackPageView(location.pathname, document.title);
+  }, [location]);
+  
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <PageViewTracker />
       <Routes>
         {/* Admin routes - no navbar */}
         <Route path="/admin/*" element={<AdminLayout />} />

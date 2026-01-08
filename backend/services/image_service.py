@@ -98,9 +98,9 @@ def process_image(content: bytes, optimize: bool = True) -> Tuple[bytes, str]:
         img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.Resampling.LANCZOS)
         logger.info(f"Resized image to {img.width}x{img.height}")
     
-    # Save as WebP for better compression
+    # Save as WebP for better compression with high quality
     output = BytesIO()
-    img.save(output, format='WEBP', quality=85, optimize=True)
+    img.save(output, format='WEBP', quality=IMAGE_QUALITY, optimize=True)
     output.seek(0)
     
     return output.read(), 'image/webp'

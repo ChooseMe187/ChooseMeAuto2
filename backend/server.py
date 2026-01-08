@@ -44,8 +44,12 @@ except Exception as e:
     logger.error(f"Failed to initialize MongoDB client: {e}")
     raise
 
+# Application version info
+APP_VERSION = "2.0.0"
+BUILD_DATE = "2025-01"
+
 # Create the main app without a prefix
-app = FastAPI(title="Choose Me Auto API", version="1.0.0")
+app = FastAPI(title="Choose Me Auto API", version=APP_VERSION)
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")

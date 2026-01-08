@@ -1,0 +1,15 @@
+# robots.txt for Choose Me Auto
+# https://choosemeauto.com
+
+User-agent: *
+Allow: /
+
+# Block admin panel from search engines
+Disallow: /admin
+Disallow: /admin/
+
+# Block API endpoints from crawling
+Disallow: /api/
+
+# Sitemap (add when available)
+# Sitemap: https://choosemeauto.com/sitemap.xml

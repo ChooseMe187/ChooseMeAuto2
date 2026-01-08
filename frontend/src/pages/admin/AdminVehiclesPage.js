@@ -76,6 +76,12 @@ const AdminVehiclesPage = () => {
         </div>
         <div className="admin-subheader-right">
           <button
+            onClick={() => setShowImportModal(true)}
+            className="admin-btn-secondary"
+          >
+            📥 Import CSV
+          </button>
+          <button
             onClick={() => {
               setEditingVehicle(null);
               setShowAddForm(true);
@@ -86,6 +92,22 @@ const AdminVehiclesPage = () => {
           </button>
         </div>
       </div>
+
+      {/* CSV Import Modal */}
+      {showImportModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal admin-modal-large">
+            <CSVImportModal
+              token={token}
+              onClose={() => setShowImportModal(false)}
+              onSuccess={() => {
+                setShowImportModal(false);
+                fetchVehicles();
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Vehicle Form */}
       {showAddForm && (

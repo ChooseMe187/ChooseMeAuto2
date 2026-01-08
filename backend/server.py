@@ -1,13 +1,15 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from pathlib import Path
+import time
 
 # Load environment variables FIRST before any imports that use them
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
@@ -28,6 +30,35 @@ from routes.vehicles import router as vehicles_router, set_db as set_vehicles_db
 from routes.leads import router as leads_router, set_db as set_leads_db
 from routes.admin_vehicles import router as admin_router, set_db as set_admin_db
 from utils.alerts import get_notification_status
+
+
+# Request logging middleware for observability
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.time()
+        
+        # Process the request
+        response = await call_next(request)
+        
+        # Calculate processing time
+        process_time = time.time() - start_time
+        
+        # Log request details (excluding sensitive paths in detail)
+        path = request.url.path
+        method = request.method
+        status = response.status_code
+        
+        # Don't log health checks to reduce noise
+        if path not in ["/health", "/api/health", "/"]:
+            # Log auth failures without credentials
+            if status == 401 or (path == "/api/admin/login" and status != 200):
+                logger.warning(f"AUTH_FAILURE: {method} {path} - {status} - {process_time:.3f}s")
+            elif status >= 400:
+                logger.warning(f"REQUEST: {method} {path} - {status} - {process_time:.3f}s")
+            else:
+                logger.info(f"REQUEST: {method} {path} - {status} - {process_time:.3f}s")
+        
+        return response
 
 # MongoDB connection with error handling
 mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')

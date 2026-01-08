@@ -56,3 +56,20 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "✅ ALL SECURITY & PERFORMANCE TESTS PASSED: Successfully tested credential rotation (old token rejected, new token works, rate limiting functional), upload limits (12 image limit enforced), and API response optimization (list endpoints optimized, detail endpoints complete). All 3 test cases passed without issues."
+  - agent: "main"
+    message: "✅ SECURITY: Admin credentials rotated again (v3) - old password properly rejected with 401, new password works correctly. Ready for comprehensive frontend testing."
+
+testing_focus_v2:
+  homepage:
+    - "Multicultural customer service imagery renders correctly (desktop + mobile)"
+    - "No layout shifts, no CLS issues"
+    - "Images are optimized and not blocking LCP"
+  featured_vehicles:
+    - "Payment Estimator updates correctly with down payment + term"
+    - "View Details and Get Approved CTAs route correctly"
+  vehicle_detail_page:
+    - "Get Approved for This Vehicle passes VIN + vehicle context"
+    - "Hold This Vehicle form submits and stores VIN + intent"
+  regression:
+    - "Inventory listing pages"
+    - "Admin image management (since homepage depends on it)"

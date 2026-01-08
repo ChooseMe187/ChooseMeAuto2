@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Query
+from fastapi.responses import JSONResponse, StreamingResponse
 from typing import List, Optional
 from datetime import datetime, timezone
 from bson import ObjectId
 import os
 import uuid
 import logging
+import io
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -22,6 +23,12 @@ from services.image_service import (
     ImageValidationError,
     normalize_images_field,
     migrate_legacy_photo_urls,
+)
+from services.csv_import_service import (
+    process_csv_import,
+    generate_csv_template,
+    CSVValidationError,
+    MAX_CSV_SIZE_MB,
 )
 
 logger = logging.getLogger(__name__)

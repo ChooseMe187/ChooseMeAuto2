@@ -144,6 +144,7 @@ test_plan:
     - "Featured Vehicles Section"
     - "Vehicle Detail Page (VDP)"
     - "Mobile Responsive Design"
+    - "Admin Panel Mobile Responsiveness"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"

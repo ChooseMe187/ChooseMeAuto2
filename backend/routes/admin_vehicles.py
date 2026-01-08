@@ -165,6 +165,26 @@ async def list_vehicles(_: bool = Depends(require_admin)):
     return [serialize_vehicle(v) for v in vehicles]
 
 
+# CSV Template Download (must be before {vehicle_id} route)
+@router.get("/vehicles/csv-template")
+async def download_csv_template(_: bool = Depends(require_admin)):
+    """
+    Download a CSV template with headers and a sample row.
+    
+    Use this template to prepare your vehicle inventory for import.
+    """
+    template_content = generate_csv_template()
+    
+    return StreamingResponse(
+        io.BytesIO(template_content.encode('utf-8')),
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=vehicle_import_template.csv",
+            "X-Robots-Tag": "noindex, nofollow"
+        }
+    )
+
+
 # Get Single Vehicle
 @router.get("/vehicles/{vehicle_id}", response_model=VehicleInDB)
 async def get_vehicle(vehicle_id: str, _: bool = Depends(require_admin)):

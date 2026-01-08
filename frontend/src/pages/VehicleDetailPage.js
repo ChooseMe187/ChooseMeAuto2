@@ -63,6 +63,14 @@ const VehicleDetailPage = () => {
   const handleGetApproved = () => {
     if (!vehicle) return;
     
+    // Track get_approved_click event
+    trackGetApprovedClick({
+      vehicleId: vehicle.stock_id || stock_id,
+      vin: vehicle.vin || '',
+      sourcePage: 'vdp',
+      ctaLocation: 'primary',
+    });
+    
     // Build URL with vehicle context
     const params = new URLSearchParams({
       vin: vehicle.vin || "",

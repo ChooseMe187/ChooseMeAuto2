@@ -297,16 +297,29 @@ const FeaturedVehicleCard = ({ vehicle, lang, copy, position }) => {
         {/* Payment Estimator */}
         {price && price > 0 && (
           <div className="fv-payment-section">
-            <PaymentEstimator price={price} compact={true} showDisclaimer={false} />
+            <PaymentEstimator 
+              price={price} 
+              compact={true} 
+              showDisclaimer={false} 
+              onChange={handlePaymentChange}
+            />
           </div>
         )}
 
         {/* CTAs */}
         <div className="fv-ctas">
-          <Link to={`/vehicle/${vehicleSlug}`} className="fv-btn fv-btn-secondary">
+          <Link 
+            to={`/vehicle/${vehicleSlug}`} 
+            className="fv-btn fv-btn-secondary"
+            onClick={handleViewDetailsClick}
+          >
             {copy.viewDetails[lang]}
           </Link>
-          <Link to="/preapproved" className="fv-btn fv-btn-primary">
+          <Link 
+            to="/preapproved" 
+            className="fv-btn fv-btn-primary"
+            onClick={handleGetApprovedClick}
+          >
             {copy.getApproved[lang]}
           </Link>
         </div>

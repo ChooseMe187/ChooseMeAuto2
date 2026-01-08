@@ -233,6 +233,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add request logging middleware
+app.add_middleware(RequestLoggingMiddleware)
+
 
 @app.on_event("startup")
 async def startup_event():

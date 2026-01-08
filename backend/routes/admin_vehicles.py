@@ -650,23 +650,3 @@ async def import_vehicles_csv(
     except Exception as e:
         logger.error(f"CSV import error: {e}")
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
-
-
-@router.get("/vehicles/csv-template")
-async def download_csv_template(_: bool = Depends(require_admin)):
-    """
-    Download a CSV template with headers and a sample row.
-    
-    Use this template to prepare your vehicle inventory for import.
-    """
-    template_content = generate_csv_template()
-    
-    return StreamingResponse(
-        io.BytesIO(template_content.encode('utf-8')),
-        media_type="text/csv",
-        headers={
-            "Content-Disposition": "attachment; filename=vehicle_import_template.csv",
-            "X-Robots-Tag": "noindex, nofollow"
-        }
-    )
-

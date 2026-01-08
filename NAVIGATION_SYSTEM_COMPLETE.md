@@ -182,14 +182,14 @@ frontend/
 
 **Test these URLs on preview:**
 ```
-https://autodealership.preview.emergentagent.com/
-https://autodealership.preview.emergentagent.com/used
-https://autodealership.preview.emergentagent.com/new
-https://autodealership.preview.emergentagent.com/preapproved
-https://autodealership.preview.emergentagent.com/test-drive
-https://autodealership.preview.emergentagent.com/contact
-https://autodealership.preview.emergentagent.com/vehicles
-https://autodealership.preview.emergentagent.com/vehicle/P57801
+https://autohub-16.preview.emergentagent.com/
+https://autohub-16.preview.emergentagent.com/used
+https://autohub-16.preview.emergentagent.com/new
+https://autohub-16.preview.emergentagent.com/preapproved
+https://autohub-16.preview.emergentagent.com/test-drive
+https://autohub-16.preview.emergentagent.com/contact
+https://autohub-16.preview.emergentagent.com/vehicles
+https://autohub-16.preview.emergentagent.com/vehicle/P57801
 ```
 
 **Expected:**

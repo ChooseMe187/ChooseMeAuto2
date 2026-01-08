@@ -8,7 +8,7 @@
 - All 529 images loading correctly
 
 **Preview Environment:** ❌ NEEDS VERIFICATION
-- URL: https://autodealership.preview.emergentagent.com/
+- URL: https://autohub-16.preview.emergentagent.com/
 - Vehicles not displaying (reported issue)
 
 ---
@@ -26,13 +26,13 @@ const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 
 **Environment Variable:**
 ```
-REACT_APP_BACKEND_URL=https://autodealership.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://autohub-16.preview.emergentagent.com
 ```
 
 **API Calls:**
-- `${API_BASE}/api/vehicles` → `https://autodealership.preview.emergentagent.com/api/vehicles`
-- `${API_BASE}/api/vehicles/{stock_id}` → `https://autodealership.preview.emergentagent.com/api/vehicles/{stock_id}`
-- `${API_BASE}/api/vehicle-leads` → `https://autodealership.preview.emergentagent.com/api/vehicle-leads`
+- `${API_BASE}/api/vehicles` → `https://autohub-16.preview.emergentagent.com/api/vehicles`
+- `${API_BASE}/api/vehicles/{stock_id}` → `https://autohub-16.preview.emergentagent.com/api/vehicles/{stock_id}`
+- `${API_BASE}/api/vehicle-leads` → `https://autohub-16.preview.emergentagent.com/api/vehicle-leads`
 
 ✅ **No hardcoded localhost URLs** - Configuration is correct for production.
 
@@ -46,13 +46,13 @@ Test these endpoints directly:
 
 ```bash
 # List all vehicles
-curl https://autodealership.preview.emergentagent.com/api/vehicles
+curl https://autohub-16.preview.emergentagent.com/api/vehicles
 
 # Get single vehicle
-curl https://autodealership.preview.emergentagent.com/api/vehicles/P57801
+curl https://autohub-16.preview.emergentagent.com/api/vehicles/P57801
 
 # Get lead count
-curl https://autodealership.preview.emergentagent.com/api/vehicle-leads/count
+curl https://autohub-16.preview.emergentagent.com/api/vehicle-leads/count
 ```
 
 **Expected Response:**
@@ -116,13 +116,13 @@ Ensure the images directory is deployed and accessible:
 **Test URLs:**
 ```bash
 # Test main image for P57801
-curl -I https://autodealership.preview.emergentagent.com/vehicles/P57801_1.jpg
+curl -I https://autohub-16.preview.emergentagent.com/vehicles/P57801_1.jpg
 
 # Test main image for 210296B
-curl -I https://autodealership.preview.emergentagent.com/vehicles/210296B_1.jpg
+curl -I https://autohub-16.preview.emergentagent.com/vehicles/210296B_1.jpg
 
 # Test a few more
-curl -I https://autodealership.preview.emergentagent.com/vehicles/P58496_1.jpg
+curl -I https://autohub-16.preview.emergentagent.com/vehicles/P58496_1.jpg
 ```
 
 **Expected Response:**
@@ -158,7 +158,7 @@ app.add_middleware(
 ```
 
 **Check in Browser DevTools:**
-- Open https://autodealership.preview.emergentagent.com/vehicles
+- Open https://autohub-16.preview.emergentagent.com/vehicles
 - Open Network tab
 - Look for `/api/vehicles` request
 - Check for CORS errors
@@ -174,7 +174,7 @@ Ensure environment variables are baked into the build:
 **During build, verify:**
 ```bash
 echo $REACT_APP_BACKEND_URL
-# Should output: https://autodealership.preview.emergentagent.com
+# Should output: https://autohub-16.preview.emergentagent.com
 ```
 
 **If empty or localhost:** Environment variables not set during build.
@@ -307,7 +307,7 @@ Open browser DevTools and run:
 
 ```javascript
 // Test API directly
-fetch('https://autodealership.preview.emergentagent.com/api/vehicles')
+fetch('https://autohub-16.preview.emergentagent.com/api/vehicles')
   .then(r => r.json())
   .then(data => {
     console.log('✅ API Works!');
@@ -317,7 +317,7 @@ fetch('https://autodealership.preview.emergentagent.com/api/vehicles')
   .catch(err => console.error('❌ API Failed:', err));
 
 // Test image loading
-fetch('https://autodealership.preview.emergentagent.com/vehicles/P57801_1.jpg')
+fetch('https://autohub-16.preview.emergentagent.com/vehicles/P57801_1.jpg')
   .then(r => console.log('✅ Image works!', r.status))
   .catch(err => console.error('❌ Image failed:', err));
 ```
@@ -370,7 +370,7 @@ Ensure these are committed and deployed:
 
 **Issue:** Vehicles not displaying on preview URL
 **App:** Choose Me Auto - Dealer Inventory
-**Preview URL:** https://autodealership.preview.emergentagent.com/
+**Preview URL:** https://autohub-16.preview.emergentagent.com/
 
 **Working locally:** ✅ Yes
 **Configuration correct:** ✅ Yes (no localhost hardcoding)

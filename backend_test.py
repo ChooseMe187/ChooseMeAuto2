@@ -13,7 +13,7 @@ from datetime import datetime
 from PIL import Image
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://autodealership.preview.emergentagent.com/api"
+BACKEND_URL = "https://autohub-16.preview.emergentagent.com/api"
 
 # Security Test Credentials
 OLD_ADMIN_TOKEN = "cma-admin-2c8e1cd0f9b70c27827d310304fd7b4c"  # Should be rejected

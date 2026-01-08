@@ -581,6 +581,13 @@ const HoldVehicleForm = ({ vehicle, onSuccess }) => {
         throw new Error("Failed to submit");
       }
 
+      // Track hold_vehicle_submit event (no PII sent to GA4)
+      trackHoldVehicleSubmit({
+        vehicleId: vehicle.stock_id || vehicle.id,
+        vin: vehicle.vin || '',
+        sourcePage: 'vdp',
+      });
+
       setStatus("success");
       setTimeout(() => {
         onSuccess?.();

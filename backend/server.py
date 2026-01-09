@@ -225,10 +225,38 @@ set_leads_db(db)
 # Set database for vehicles routes
 set_vehicles_db(db)
 
+# CORS Configuration
+# Parse CORS origins from environment, filter empty strings
+cors_origins_raw = os.environ.get('CORS_ORIGINS', '')
+cors_origins = [origin.strip() for origin in cors_origins_raw.split(',') if origin.strip()]
+
+# Default origins for Emergent deployment compatibility
+default_origins = [
+    "https://choosemeauto.com",
+    "https://www.choosemeauto.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Emergent domain patterns (add any preview/host domains here)
+emergent_origins = [
+    "https://autohub-16.preview.emergentagent.com",
+    "https://autohub-16.emergent.host",
+]
+
+# Combine all origins (env takes precedence if set, otherwise use defaults)
+if cors_origins and cors_origins != ['*']:
+    allowed_origins = cors_origins
+else:
+    allowed_origins = default_origins + emergent_origins
+
+# Log CORS config for debugging
+logger.info(f"CORS allowed origins: {allowed_origins}")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=allowed_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -5,6 +5,11 @@ This module handles image uploads with persistence to MongoDB.
 Images are stored as Base64-encoded data URLs directly in the database,
 ensuring they persist across deploys/restarts.
 
+Features:
+- EXIF orientation auto-correction (fixes sideways photos from phones)
+- High-quality resizing with proper aspect ratio preservation
+- WebP conversion for optimal file size without quality loss
+
 For high-volume scenarios, this can be swapped to S3/R2 storage.
 """
 import base64
@@ -12,18 +17,18 @@ import uuid
 import logging
 from typing import List, Optional, Tuple
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ExifTags
 import os
 
 logger = logging.getLogger(__name__)
 
-# Maximum image dimensions (resize larger images)
+# Maximum image dimensions (resize larger images while preserving aspect ratio)
 MAX_WIDTH = int(os.environ.get("IMAGE_MAX_WIDTH", "1920"))
 MAX_HEIGHT = int(os.environ.get("IMAGE_MAX_HEIGHT", "1440"))
 THUMBNAIL_SIZE = (600, 450)
 MAX_FILE_SIZE_MB = int(os.environ.get("MAX_UPLOAD_MB", "15"))
 IMAGE_QUALITY = int(os.environ.get("IMAGE_QUALITY", "92"))
-THUMBNAIL_QUALITY = int(os.environ.get("THUMBNAIL_QUALITY", "80"))
+THUMBNAIL_QUALITY = int(os.environ.get("THUMBNAIL_QUALITY", "85"))
 ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
 
@@ -31,6 +36,135 @@ ALLOWED_MIME_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
 class ImageValidationError(Exception):
     """Raised when image validation fails"""
     pass
+
+
+def correct_image_orientation(img: Image.Image) -> Image.Image:
+    """
+    Auto-correct image orientation based on EXIF data.
+    
+    Many phone cameras store rotation as EXIF metadata instead of 
+    physically rotating the image. This function reads that data
+    and applies the correct rotation so images display properly.
+    
+    Args:
+        img: PIL Image object
+        
+    Returns:
+        Correctly oriented PIL Image
+    """
+    try:
+        # Get EXIF data
+        exif = img._getexif()
+        if exif is None:
+            return img
+        
+        # Find the orientation tag
+        orientation_key = None
+        for key, value in ExifTags.TAGS.items():
+            if value == 'Orientation':
+                orientation_key = key
+                break
+        
+        if orientation_key is None or orientation_key not in exif:
+            return img
+        
+        orientation = exif[orientation_key]
+        
+        # Apply rotation/flip based on EXIF orientation value
+        # See: https://exiftool.org/TagNames/EXIF.html
+        if orientation == 2:
+            # Mirrored horizontal
+            img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+        elif orientation == 3:
+            # Rotated 180 degrees
+            img = img.rotate(180, expand=True)
+        elif orientation == 4:
+            # Mirrored vertical
+            img = img.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        elif orientation == 5:
+            # Mirrored horizontal then rotated 90 CCW
+            img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            img = img.rotate(90, expand=True)
+        elif orientation == 6:
+            # Rotated 90 CW (most common for portrait phone photos)
+            img = img.rotate(-90, expand=True)
+        elif orientation == 7:
+            # Mirrored horizontal then rotated 90 CW
+            img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
+            img = img.rotate(-90, expand=True)
+        elif orientation == 8:
+            # Rotated 90 CCW
+            img = img.rotate(90, expand=True)
+        
+        logger.info(f"Corrected image orientation (EXIF orientation: {orientation})")
+        return img
+        
+    except (AttributeError, KeyError, TypeError) as e:
+        # No EXIF data or orientation tag - return image as-is
+        logger.debug(f"No EXIF orientation data found: {e}")
+        return img
+
+
+def smart_resize(img: Image.Image, max_width: int, max_height: int) -> Image.Image:
+    """
+    Resize image while preserving aspect ratio and maintaining quality.
+    
+    Uses high-quality LANCZOS resampling and only resizes if necessary.
+    
+    Args:
+        img: PIL Image object
+        max_width: Maximum width
+        max_height: Maximum height
+        
+    Returns:
+        Resized PIL Image (or original if already within bounds)
+    """
+    original_width, original_height = img.size
+    
+    # Check if resize is needed
+    if original_width <= max_width and original_height <= max_height:
+        return img
+    
+    # Calculate aspect ratio preserving dimensions
+    ratio = min(max_width / original_width, max_height / original_height)
+    new_width = int(original_width * ratio)
+    new_height = int(original_height * ratio)
+    
+    # Use high-quality LANCZOS resampling
+    resized = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    
+    logger.info(f"Resized image from {original_width}x{original_height} to {new_width}x{new_height}")
+    return resized
+
+
+def convert_to_rgb(img: Image.Image) -> Image.Image:
+    """
+    Convert image to RGB mode, handling transparency properly.
+    
+    Args:
+        img: PIL Image object
+        
+    Returns:
+        RGB PIL Image
+    """
+    if img.mode == 'RGB':
+        return img
+    
+    if img.mode in ('RGBA', 'P', 'LA'):
+        # Create white background for transparent images
+        background = Image.new('RGB', img.size, (255, 255, 255))
+        if img.mode == 'RGBA':
+            background.paste(img, mask=img.split()[3])
+        elif img.mode == 'LA':
+            background.paste(img, mask=img.split()[1])
+        else:
+            # Mode P (palette) - convert first
+            img_rgba = img.convert('RGBA')
+            background.paste(img_rgba, mask=img_rgba.split()[3])
+        return background
+    
+    # Other modes (L, CMYK, etc.)
+    return img.convert('RGB')
 
 
 def validate_image_file(filename: str, content: bytes, content_type: Optional[str] = None) -> None:
@@ -70,61 +204,74 @@ def validate_image_file(filename: str, content: bytes, content_type: Optional[st
 
 def process_image(content: bytes, optimize: bool = True) -> Tuple[bytes, str]:
     """
-    Process an image: resize if needed, convert to WebP for optimization.
+    Process an image with EXIF correction, proper resizing, and WebP conversion.
+    
+    This function:
+    1. Auto-corrects orientation from EXIF data (fixes sideways phone photos)
+    2. Converts to RGB mode (handles transparency)
+    3. Resizes with aspect ratio preservation using high-quality resampling
+    4. Converts to WebP format with high quality settings
     
     Args:
         content: Raw image bytes
-        optimize: Whether to optimize/resize the image
+        optimize: Whether to resize the image (always processes orientation)
         
     Returns:
         Tuple of (processed_bytes, mime_type)
     """
     img = Image.open(BytesIO(content))
     
-    # Convert to RGB if necessary (for PNG with transparency)
-    if img.mode in ('RGBA', 'P'):
-        # Create white background
-        background = Image.new('RGB', img.size, (255, 255, 255))
-        if img.mode == 'RGBA':
-            background.paste(img, mask=img.split()[3])
-        else:
-            background.paste(img)
-        img = background
-    elif img.mode != 'RGB':
-        img = img.convert('RGB')
+    # Step 1: Auto-correct EXIF orientation (critical for phone photos)
+    img = correct_image_orientation(img)
     
-    # Resize if too large
-    if optimize and (img.width > MAX_WIDTH or img.height > MAX_HEIGHT):
-        img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.Resampling.LANCZOS)
-        logger.info(f"Resized image to {img.width}x{img.height}")
+    # Step 2: Convert to RGB
+    img = convert_to_rgb(img)
     
-    # Save as WebP for better compression with high quality
+    # Step 3: Smart resize if needed (preserves aspect ratio)
+    if optimize:
+        img = smart_resize(img, MAX_WIDTH, MAX_HEIGHT)
+    
+    # Step 4: Save as high-quality WebP
     output = BytesIO()
-    img.save(output, format='WEBP', quality=IMAGE_QUALITY, optimize=True)
+    img.save(
+        output, 
+        format='WEBP', 
+        quality=IMAGE_QUALITY, 
+        method=6,  # Highest quality compression method
+        optimize=True
+    )
     output.seek(0)
     
     return output.read(), 'image/webp'
 
 
 def create_thumbnail(content: bytes) -> bytes:
-    """Create a thumbnail version of the image."""
+    """
+    Create a high-quality thumbnail version of the image.
+    
+    Applies EXIF correction before thumbnailing to ensure
+    correct orientation in gallery views.
+    """
     img = Image.open(BytesIO(content))
     
-    # Convert to RGB
-    if img.mode in ('RGBA', 'P'):
-        background = Image.new('RGB', img.size, (255, 255, 255))
-        if img.mode == 'RGBA':
-            background.paste(img, mask=img.split()[3])
-        else:
-            background.paste(img)
-        img = background
-    elif img.mode != 'RGB':
-        img = img.convert('RGB')
+    # Apply EXIF orientation correction
+    img = correct_image_orientation(img)
     
+    # Convert to RGB
+    img = convert_to_rgb(img)
+    
+    # Create thumbnail with aspect ratio preservation
+    # Use LANCZOS for high-quality downsampling
     img.thumbnail(THUMBNAIL_SIZE, Image.Resampling.LANCZOS)
     
     output = BytesIO()
-    img.save(output, format='WEBP', quality=THUMBNAIL_QUALITY, optimize=True)
+    img.save(
+        output, 
+        format='WEBP', 
+        quality=THUMBNAIL_QUALITY, 
+        method=6,
+        optimize=True
+    )
     output.seek(0)
     
     return output.read()

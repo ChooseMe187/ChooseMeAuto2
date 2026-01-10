@@ -473,6 +473,88 @@ const VehicleDetailPage = () => {
             <CallForAvailabilityForm vehicle={vehicle} />
           </div>
         )}
+
+        {/* Image Lightbox Modal */}
+        {lightboxOpen && images.length > 0 && (
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <div 
+              className="relative max-w-[92vw] max-h-[92vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close button */}
+              <button 
+                className="absolute -top-10 right-0 text-white text-3xl hover:text-slate-300 transition z-10"
+                onClick={() => setLightboxOpen(false)}
+                aria-label="Close lightbox"
+              >
+                ✕
+              </button>
+
+              {/* Previous button */}
+              {images.length > 1 && (
+                <button 
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white text-4xl w-12 h-12 rounded-full flex items-center justify-center transition z-10"
+                  onClick={prev}
+                  aria-label="Previous image"
+                >
+                  ‹
+                </button>
+              )}
+
+              {/* Main lightbox image */}
+              <img
+                className="max-w-[92vw] max-h-[85vh] rounded-lg object-contain"
+                src={images[selectedIndex]?.url || images[selectedIndex]?.thumbnail_url}
+                alt={`${vehicleTitle} - Image ${selectedIndex + 1}`}
+              />
+
+              {/* Next button */}
+              {images.length > 1 && (
+                <button 
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white text-4xl w-12 h-12 rounded-full flex items-center justify-center transition z-10"
+                  onClick={next}
+                  aria-label="Next image"
+                >
+                  ›
+                </button>
+              )}
+
+              {/* Image counter */}
+              {images.length > 1 && (
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+                  {selectedIndex + 1} / {images.length}
+                </div>
+              )}
+
+              {/* Thumbnail strip in lightbox */}
+              {images.length > 1 && (
+                <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg max-w-[90vw] overflow-x-auto">
+                  {images.map((img, idx) => (
+                    <button
+                      key={img.upload_id || img.url || `lb-${idx}`}
+                      type="button"
+                      onClick={() => setSelectedIndex(idx)}
+                      className={`h-12 w-16 flex-shrink-0 rounded overflow-hidden transition-all ${
+                        idx === selectedIndex 
+                          ? "ring-2 ring-white" 
+                          : "opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <img
+                        src={img.thumbnail_url || img.url}
+                        alt={`Thumbnail ${idx + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

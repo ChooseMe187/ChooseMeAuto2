@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { vehicleDetailCopy } from "../i18n/vehicleDetail";
@@ -19,6 +19,10 @@ const VehicleDetailPage = () => {
   const [error, setError] = useState(null);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [showHoldModal, setShowHoldModal] = useState(false);
+  
+  // Image gallery state
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     if (!stock_id) return;
@@ -47,6 +51,66 @@ const VehicleDetailPage = () => {
 
     load();
   }, [stock_id, lang]);
+
+  // Normalize images array from vehicle data
+  const images = (() => {
+    if (!vehicle) return [];
+    
+    // Prefer the new images[] array structure
+    if (Array.isArray(vehicle.images) && vehicle.images.length > 0) {
+      return vehicle.images;
+    }
+    
+    // Fallback to legacy image fields
+    const legacyImages = [
+      vehicle.primary_image_url,
+      vehicle.image_url,
+      ...(vehicle.image_urls || []),
+      ...(vehicle.photo_urls || [])
+    ].filter(Boolean);
+    
+    // Convert to new format
+    return legacyImages.map((url, idx) => ({
+      url: url,
+      thumbnail_url: url,
+      is_primary: idx === 0
+    }));
+  })();
+
+  // Initialize selectedIndex to primary image when vehicle changes
+  useEffect(() => {
+    if (!images.length) return;
+    
+    const primaryIdx = images.findIndex(img => img?.is_primary);
+    setSelectedIndex(primaryIdx >= 0 ? primaryIdx : 0);
+  }, [vehicle?.id, vehicle?.stock_id]);
+
+  // Lightbox navigation
+  const next = useCallback(() => {
+    if (images.length > 0) {
+      setSelectedIndex((i) => (i + 1) % images.length);
+    }
+  }, [images.length]);
+
+  const prev = useCallback(() => {
+    if (images.length > 0) {
+      setSelectedIndex((i) => (i - 1 + images.length) % images.length);
+    }
+  }, [images.length]);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") prev();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [lightboxOpen, next, prev]);
 
   // Detect mobile device
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -81,6 +145,13 @@ const VehicleDetailPage = () => {
     
     // Navigate to pre-approval page with vehicle context
     navigate(`/preapproved?${params.toString()}`);
+  };
+
+  // Get current main image source
+  const getMainImageSrc = () => {
+    if (images.length === 0) return null;
+    const selected = images[selectedIndex];
+    return selected?.url || selected?.thumbnail_url || vehicle?.primary_image_url || null;
   };
 
   if (loading) {

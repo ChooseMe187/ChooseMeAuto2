@@ -30,6 +30,12 @@ from services.csv_import_service import (
     CSVValidationError,
     MAX_CSV_SIZE_MB,
 )
+from services.image_cleaning_service import (
+    clean_vehicle_images,
+    run_batch_image_cleaning,
+    CROP_BOTTOM_PIXELS,
+    CROP_TOP_PIXELS,
+)
 
 logger = logging.getLogger(__name__)
 

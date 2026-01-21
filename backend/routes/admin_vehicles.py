@@ -276,6 +276,7 @@ SYNC_COOLDOWN_SECONDS = 60  # 1 minute cooldown
 async def sync_vehicles_to_admin(
     request: Request,
     source_collection: str = Query(default="vehicles", description="Source collection name"),
+    dry_run: bool = Query(default=False, description="Preview only - don't write to database"),
     _: bool = Depends(require_admin)
 ):
     """
@@ -288,15 +289,19 @@ async def sync_vehicles_to_admin(
     
     Use this to fix mismatches between public API and admin panel.
     
-    **Rate limited**: Can only be run once per minute.
+    **Parameters:**
+    - `source_collection`: Collection to read from (default: "vehicles")
+    - `dry_run`: If true, only preview what would happen (no writes)
+    
+    **Rate limited**: Can only be run once per minute (dry_run excluded).
     """
-    # Rate limiting
+    # Rate limiting (skip for dry_run)
     client_ip = request.client.host if request.client else "unknown"
     import time
     current_time = time.time()
     last_run = sync_last_run.get(client_ip, 0)
     
-    if (current_time - last_run) < SYNC_COOLDOWN_SECONDS:
+    if not dry_run and (current_time - last_run) < SYNC_COOLDOWN_SECONDS:
         remaining = int(SYNC_COOLDOWN_SECONDS - (current_time - last_run))
         raise HTTPException(
             status_code=429,
@@ -317,13 +322,15 @@ async def sync_vehicles_to_admin(
     inserted = 0
     updated = 0
     skipped = 0
+    unchanged = 0
     errors = []
+    preview_samples = []  # For dry_run
     
     # Get all documents from source
     cursor = source.find({})
     docs = await cursor.to_list(length=1000)
     
-    logger.info(f"Sync starting: {len(docs)} documents from '{source_collection}'")
+    logger.info(f"Sync {'(DRY RUN) ' if dry_run else ''}starting: {len(docs)} documents from '{source_collection}'")
     
     for doc in docs:
         try:
@@ -339,46 +346,81 @@ async def sync_vehicles_to_admin(
             normalized["vin"] = vin
             normalized["updated_at"] = datetime.now(timezone.utc)
             
-            # Upsert by VIN
-            result = await target.update_one(
-                {"vin": vin},
-                {
-                    "$set": normalized,
-                    "$setOnInsert": {"created_at": datetime.now(timezone.utc)}
-                },
-                upsert=True
-            )
+            # Check if exists
+            existing = await target.find_one({"vin": vin})
             
-            if result.upserted_id:
-                inserted += 1
-            elif result.modified_count:
-                updated += 1
+            if dry_run:
+                # Preview mode - just count what would happen
+                action = "update" if existing else "insert"
+                if existing:
+                    updated += 1
+                else:
+                    inserted += 1
+                
+                # Add sample for preview (first 10)
+                if len(preview_samples) < 10:
+                    preview_samples.append({
+                        "vin": vin,
+                        "action": action,
+                        "vehicle": f"{normalized.get('year')} {normalized.get('make')} {normalized.get('model')}",
+                        "stock": normalized.get("stock_number"),
+                    })
+            else:
+                # Actually perform the upsert
+                result = await target.update_one(
+                    {"vin": vin},
+                    {
+                        "$set": normalized,
+                        "$setOnInsert": {"created_at": datetime.now(timezone.utc)}
+                    },
+                    upsert=True
+                )
+                
+                if result.upserted_id:
+                    inserted += 1
+                elif result.modified_count:
+                    updated += 1
+                else:
+                    unchanged += 1
                 
         except Exception as e:
             logger.error(f"Sync error for doc: {e}")
             errors.append(str(e)[:100])
             skipped += 1
     
-    # Update rate limit tracker
-    sync_last_run[client_ip] = current_time
+    # Update rate limit tracker (only for actual runs)
+    if not dry_run:
+        sync_last_run[client_ip] = current_time
     
-    # Get final count
-    final_count = await target.count_documents({})
+    # Get counts
+    source_count = await source.count_documents({})
+    target_count = await target.count_documents({})
     
-    logger.info(f"Sync complete: {inserted} inserted, {updated} updated, {skipped} skipped")
+    logger.info(f"Sync {'(DRY RUN) ' if dry_run else ''}complete: {inserted} inserted, {updated} updated, {skipped} skipped")
     
-    return {
+    result = {
         "success": True,
+        "dry_run": dry_run,
         "source_collection": source_collection,
         "target_collection": "admin_vehicles",
+        "source_count": source_count,
         "results": {
-            "inserted": inserted,
-            "updated": updated,
+            "would_insert" if dry_run else "inserted": inserted,
+            "would_update" if dry_run else "updated": updated,
             "skipped": skipped,
-            "errors": errors[:5] if errors else [],
         },
-        "final_admin_count": final_count,
+        "target_count_before" if dry_run else "target_count_after": target_count,
+        "errors": errors[:5] if errors else [],
     }
+    
+    # Add preview samples for dry_run
+    if dry_run:
+        result["preview_samples"] = preview_samples
+        result["message"] = f"DRY RUN: Would insert {inserted}, update {updated}, skip {skipped}. Run without dry_run=true to execute."
+    else:
+        result["unchanged"] = unchanged
+    
+    return result
 
 
 def normalize_vehicle_for_admin(doc: dict) -> dict:

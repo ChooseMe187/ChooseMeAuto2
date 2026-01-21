@@ -75,41 +75,6 @@ const VehicleDetailPage = () => {
     }));
   })();
 
-  // Initialize selectedIndex to primary image when vehicle changes
-  useEffect(() => {
-    if (!images.length) return;
-    
-    const primaryIdx = images.findIndex(img => img?.is_primary);
-    setSelectedIndex(primaryIdx >= 0 ? primaryIdx : 0);
-  }, [vehicle?.id, vehicle?.stock_id]);
-
-  // Lightbox navigation
-  const next = useCallback(() => {
-    if (images.length > 0) {
-      setSelectedIndex((i) => (i + 1) % images.length);
-    }
-  }, [images.length]);
-
-  const prev = useCallback(() => {
-    if (images.length > 0) {
-      setSelectedIndex((i) => (i - 1 + images.length) % images.length);
-    }
-  }, [images.length]);
-
-  // Keyboard navigation for lightbox
-  useEffect(() => {
-    if (!lightboxOpen) return;
-
-    const onKeyDown = (e) => {
-      if (e.key === "Escape") setLightboxOpen(false);
-      if (e.key === "ArrowRight") next();
-      if (e.key === "ArrowLeft") prev();
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [lightboxOpen, next, prev]);
-
   // Detect mobile device
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 

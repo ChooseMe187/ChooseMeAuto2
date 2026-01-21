@@ -177,72 +177,14 @@ const VehicleDetailPage = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Left: Image Gallery */}
+          {/* Left: Image Gallery - Using reusable component */}
           <div className="rounded-xl bg-white p-4 shadow-sm">
-            {images.length > 0 ? (
-              <>
-                {/* Main Image - Click to open lightbox */}
-                <div 
-                  className="relative cursor-pointer group"
-                  onClick={() => setLightboxOpen(true)}
-                >
-                  <img
-                    src={getMainImageSrc()}
-                    alt={`${vehicleTitle} - Photo ${selectedIndex + 1}`}
-                    className="mb-3 h-64 w-full rounded-lg bg-slate-200 object-cover transition-transform group-hover:scale-[1.02]"
-                    onError={(e) => {
-                      e.currentTarget.src = "/img/vehicle-placeholder.webp";
-                    }}
-                  />
-                  {/* Zoom indicator */}
-                  <div className="absolute bottom-4 right-4 bg-black/60 text-white px-2 py-1 rounded text-xs flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span>🔍</span> Click to enlarge
-                  </div>
-                  {/* Image counter */}
-                  {images.length > 1 && (
-                    <div className="absolute bottom-4 left-4 bg-black/60 text-white px-2 py-1 rounded text-xs">
-                      {selectedIndex + 1} / {images.length}
-                    </div>
-                  )}
-                </div>
-
-                {/* Thumbnails - Click to change main image */}
-                {images.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {images.map((img, idx) => (
-                      <button
-                        key={img.upload_id || img.url || `${vehicle?.vin}-${idx}`}
-                        type="button"
-                        onClick={() => setSelectedIndex(idx)}
-                        className={`h-16 w-24 flex-shrink-0 rounded-md bg-slate-200 overflow-hidden transition-all ${
-                          idx === selectedIndex 
-                            ? "ring-2 ring-emerald-500 ring-offset-2" 
-                            : "hover:opacity-75"
-                        }`}
-                      >
-                        <img
-                          src={img.thumbnail_url || img.url}
-                          alt={`${vehicleTitle} - Thumbnail ${idx + 1}`}
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = "/img/vehicle-placeholder.webp";
-                          }}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div className="mb-3 h-64 w-full rounded-lg bg-slate-200 flex items-center justify-center">
-                  <span className="text-slate-400 text-4xl">🚗</span>
-                </div>
-                <p className="text-xs text-slate-500">
-                  {vehicleDetailCopy.photosComingSoon[lang]}
-                </p>
-              </>
-            )}
+            <VehicleImageGallery 
+              images={images}
+              vehicleTitle={vehicleTitle}
+              showCounter={true}
+              showZoomHint={true}
+            />
           </div>
 
           {/* Right: Info */}

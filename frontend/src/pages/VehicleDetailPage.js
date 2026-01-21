@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useLanguage } from "../context/LanguageContext";
 import { vehicleDetailCopy } from "../i18n/vehicleDetail";
 import CallForAvailabilityForm from "../components/CallForAvailabilityForm";
+import VehicleImageGallery from "../components/VehicleImageGallery";
 import { trackGetApprovedClick, trackHoldVehicleSubmit } from "../utils/analytics";
+import "../styles/vehicle-gallery.css";
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || "";
 const DEALER_PHONE = "(206) 786-1751";
@@ -19,10 +21,6 @@ const VehicleDetailPage = () => {
   const [error, setError] = useState(null);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
   const [showHoldModal, setShowHoldModal] = useState(false);
-  
-  // Image gallery state
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     if (!stock_id) return;

@@ -1,0 +1,351 @@
+/* ============================================
+   Vehicle Image Gallery Component Styles
+   ============================================ */
+
+/* Main Gallery Container */
+.vehicle-gallery {
+  width: 100%;
+}
+
+/* Main Image Container */
+.vehicle-gallery-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4/3;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f1f5f9;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.vehicle-gallery-main:hover {
+  transform: scale(1.01);
+}
+
+.vehicle-gallery-main:hover .vehicle-gallery-zoom-hint {
+  opacity: 1;
+}
+
+.vehicle-gallery-main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+/* Placeholder */
+.vehicle-gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #e2e8f0 0%, #f1f5f9 100%);
+  gap: 0.5rem;
+}
+
+.vehicle-gallery-placeholder-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.vehicle-gallery-placeholder-text {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Zoom Hint Overlay */
+.vehicle-gallery-zoom-hint {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* Image Counter */
+.vehicle-gallery-counter {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Thumbnails Row */
+.vehicle-gallery-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.vehicle-gallery-thumbs::-webkit-scrollbar {
+  height: 6px;
+}
+
+.vehicle-gallery-thumbs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.vehicle-gallery-thumbs::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+/* Thumbnail Button */
+.vehicle-gallery-thumb {
+  flex-shrink: 0;
+  width: 80px;
+  height: 60px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #f1f5f9;
+  transition: all 0.2s ease;
+}
+
+.vehicle-gallery-thumb:hover {
+  border-color: #94a3b8;
+}
+
+.vehicle-gallery-thumb.active {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.vehicle-gallery-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================
+   Lightbox Modal
+   ============================================ */
+
+.vehicle-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.vehicle-lightbox {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Lightbox Main Image */
+.vehicle-lightbox-img {
+  max-width: 92vw;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* Close Button */
+.vehicle-lightbox-close {
+  position: absolute;
+  top: -2.5rem;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 10;
+}
+
+.vehicle-lightbox-close:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Navigation Buttons */
+.vehicle-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: white;
+  font-size: 2.5rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.vehicle-lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.vehicle-lightbox-prev {
+  left: -4rem;
+}
+
+.vehicle-lightbox-next {
+  right: -4rem;
+}
+
+/* Lightbox Counter */
+.vehicle-lightbox-counter {
+  position: absolute;
+  bottom: -2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 0.375rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Lightbox Thumbnail Strip */
+.vehicle-lightbox-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
+  max-width: 90vw;
+  overflow-x: auto;
+  backdrop-filter: blur(8px);
+}
+
+.vehicle-lightbox-thumb {
+  flex-shrink: 0;
+  width: 60px;
+  height: 45px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #333;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.vehicle-lightbox-thumb:hover {
+  opacity: 0.9;
+}
+
+.vehicle-lightbox-thumb.active {
+  border-color: white;
+  opacity: 1;
+}
+
+.vehicle-lightbox-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ============================================
+   Responsive Adjustments
+   ============================================ */
+
+@media (max-width: 768px) {
+  .vehicle-gallery-main {
+    aspect-ratio: 16/10;
+    border-radius: 8px;
+  }
+
+  .vehicle-gallery-thumb {
+    width: 64px;
+    height: 48px;
+  }
+
+  .vehicle-lightbox-nav {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 2rem;
+  }
+
+  .vehicle-lightbox-prev {
+    left: 0.5rem;
+  }
+
+  .vehicle-lightbox-next {
+    right: 0.5rem;
+  }
+
+  .vehicle-lightbox-img {
+    max-height: 60vh;
+  }
+
+  .vehicle-lightbox-thumbs {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .vehicle-lightbox-thumb {
+    width: 48px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vehicle-gallery-zoom-hint {
+    display: none;
+  }
+
+  .vehicle-lightbox-close {
+    top: -2rem;
+    font-size: 1.5rem;
+  }
+
+  .vehicle-lightbox-counter {
+    bottom: -1.5rem;
+    font-size: 0.75rem;
+  }
+}

@@ -974,3 +974,153 @@ async def import_vehicles_csv(
     except Exception as e:
         logger.error(f"CSV import error: {e}")
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+
+# ============================================================
+# IMAGE CLEANING ENDPOINTS
+# ============================================================
+
+# Rate limiting for image cleaning
+image_clean_last_run = {}
+IMAGE_CLEAN_COOLDOWN_SECONDS = 120  # 2 minutes cooldown for batch operations
+
+@router.post("/vehicles/clean-images")
+async def batch_clean_vehicle_images(
+    request: Request,
+    crop_bottom: int = Query(default=60, description="Pixels to crop from bottom (dealer watermark area)"),
+    crop_top: int = Query(default=0, description="Pixels to crop from top"),
+    force_reprocess: bool = Query(default=False, description="Reprocess all images, even if already cleaned"),
+    limit: int = Query(default=50, ge=1, le=200, description="Max vehicles to process"),
+    dry_run: bool = Query(default=False, description="Preview only - don't modify database"),
+    _: bool = Depends(require_admin)
+):
+    """
+    Clean/crop branding from all vehicle images.
+    
+    This endpoint:
+    1. Finds vehicles with unprocessed images
+    2. Downloads each image
+    3. Crops dealer branding (bottom/top strips)
+    4. Generates derivatives: thumb, display, full, clean
+    5. Stores processed images back in MongoDB
+    
+    **Parameters:**
+    - `crop_bottom`: Pixels to remove from bottom (default: 60 for dealer banners)
+    - `crop_top`: Pixels to remove from top
+    - `force_reprocess`: Reprocess even if clean versions exist
+    - `limit`: Max vehicles to process (default: 50)
+    - `dry_run`: Preview without writing changes
+    
+    **Rate limited**: 2 minutes between batch runs.
+    """
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    import time
+    current_time = time.time()
+    last_run = image_clean_last_run.get(client_ip, 0)
+    
+    if not dry_run and (current_time - last_run) < IMAGE_CLEAN_COOLDOWN_SECONDS:
+        remaining = int(IMAGE_CLEAN_COOLDOWN_SECONDS - (current_time - last_run))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Image cleaning can only be run every 2 minutes. Please wait {remaining} seconds."
+        )
+    
+    if dry_run:
+        # Preview mode - just count what would be processed
+        collection = db["admin_vehicles"]
+        query = {
+            "images": {"$exists": True, "$ne": []},
+        }
+        if not force_reprocess:
+            query["$or"] = [
+                {"images.clean": {"$exists": False}},
+                {"images": {"$elemMatch": {"clean": {"$exists": False}}}}
+            ]
+        
+        total = await collection.count_documents(query)
+        vehicles = await collection.find(query, {"_id": 1, "year": 1, "make": 1, "model": 1, "images": 1}).limit(limit).to_list(limit)
+        
+        preview = []
+        for v in vehicles[:10]:
+            img_count = len(v.get("images", []))
+            unclean = sum(1 for img in v.get("images", []) if not img.get("clean"))
+            preview.append({
+                "vehicle": f"{v.get('year')} {v.get('make')} {v.get('model')}",
+                "total_images": img_count,
+                "images_to_clean": unclean,
+            })
+        
+        return {
+            "dry_run": True,
+            "total_vehicles_matching": total,
+            "would_process": min(total, limit),
+            "crop_settings": {"bottom": crop_bottom, "top": crop_top},
+            "preview": preview,
+            "message": f"DRY RUN: Would process up to {min(total, limit)} vehicles. Run without dry_run=true to execute."
+        }
+    
+    # Actually run the cleaning
+    try:
+        result = await run_batch_image_cleaning(
+            db,
+            crop_bottom=crop_bottom,
+            crop_top=crop_top,
+            force_reprocess=force_reprocess,
+            limit=limit
+        )
+        
+        # Update rate limiter
+        image_clean_last_run[client_ip] = current_time
+        
+        return {
+            "success": True,
+            "crop_settings": {"bottom": crop_bottom, "top": crop_top},
+            **result
+        }
+        
+    except Exception as e:
+        logger.error(f"Batch image cleaning error: {e}")
+        raise HTTPException(status_code=500, detail=f"Image cleaning failed: {str(e)}")
+
+
+@router.post("/vehicles/{vehicle_id}/clean-images")
+async def clean_single_vehicle_images(
+    vehicle_id: str,
+    crop_bottom: int = Query(default=60, description="Pixels to crop from bottom"),
+    crop_top: int = Query(default=0, description="Pixels to crop from top"),
+    force_reprocess: bool = Query(default=False, description="Reprocess all images"),
+    _: bool = Depends(require_admin)
+):
+    """
+    Clean/crop branding from a single vehicle's images.
+    
+    Useful for testing crop settings before running batch.
+    """
+    coll = db["admin_vehicles"]
+    
+    # Find vehicle
+    vehicle = await coll.find_one({"stock_number": vehicle_id})
+    if not vehicle:
+        vehicle = await coll.find_one({"vin": vehicle_id})
+    if not vehicle:
+        try:
+            vehicle = await coll.find_one({"_id": ObjectId(vehicle_id)})
+        except:
+            pass
+    
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    
+    try:
+        result = await clean_vehicle_images(
+            vehicle, db, crop_bottom, crop_top, force_reprocess
+        )
+        return {
+            "success": True,
+            "crop_settings": {"bottom": crop_bottom, "top": crop_top},
+            **result
+        }
+    except Exception as e:
+        logger.error(f"Single vehicle image cleaning error: {e}")
+        raise HTTPException(status_code=500, detail=f"Image cleaning failed: {str(e)}")

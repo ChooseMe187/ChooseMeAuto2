@@ -185,6 +185,257 @@ async def download_csv_template(_: bool = Depends(require_admin)):
     )
 
 
+# ============================================================
+# DEBUG & SYNC ENDPOINTS
+# ============================================================
+
+@router.get("/vehicles/debug-counts")
+async def debug_vehicle_counts(_: bool = Depends(require_admin)):
+    """
+    Debug endpoint to diagnose vehicle count mismatches between collections.
+    
+    Returns database info, collection names, counts, and sample document fields.
+    Use this to identify why admin panel might show different vehicles than public API.
+    """
+    # Get all collections
+    collections = await db.list_collection_names()
+    
+    # Count documents in potential vehicle collections
+    counts = {}
+    sample_fields = {}
+    
+    # Check admin_vehicles (what admin panel uses)
+    admin_coll = db["admin_vehicles"]
+    counts["admin_vehicles_total"] = await admin_coll.count_documents({})
+    counts["admin_vehicles_active"] = await admin_coll.count_documents({"is_active": {"$ne": False}})
+    
+    # Get sample document fields from admin_vehicles
+    sample_admin = await admin_coll.find_one({})
+    sample_fields["admin_vehicles"] = list((sample_admin or {}).keys()) if sample_admin else []
+    
+    # Check if there's a separate 'vehicles' collection
+    if "vehicles" in collections:
+        vehicles_coll = db["vehicles"]
+        counts["vehicles_total"] = await vehicles_coll.count_documents({})
+        sample_public = await vehicles_coll.find_one({})
+        sample_fields["vehicles"] = list((sample_public or {}).keys()) if sample_public else []
+    
+    # Check for any other potential vehicle collections
+    for coll_name in collections:
+        if "vehicle" in coll_name.lower() and coll_name not in ["admin_vehicles", "vehicles"]:
+            counts[f"{coll_name}_total"] = await db[coll_name].count_documents({})
+    
+    # The filter used in list_vehicles endpoint
+    admin_filter = {}  # Currently no filter applied
+    
+    return {
+        "db_name": db.name,
+        "collections": collections,
+        "counts": counts,
+        "admin_list_filter": admin_filter,
+        "admin_list_query": "coll.find({}).sort('created_at', -1).limit(500)",
+        "sample_doc_fields": sample_fields,
+        "diagnosis": {
+            "admin_vehicles_has_data": counts.get("admin_vehicles_total", 0) > 0,
+            "vehicles_collection_exists": "vehicles" in collections,
+            "potential_mismatch": counts.get("vehicles_total", 0) != counts.get("admin_vehicles_total", 0) if "vehicles" in collections else False,
+        }
+    }
+
+
+# Rate limiting for sync (simple in-memory tracker)
+sync_last_run = {}
+SYNC_COOLDOWN_SECONDS = 60  # 1 minute cooldown
+
+@router.post("/vehicles/sync")
+async def sync_vehicles_to_admin(
+    request: Request,
+    source_collection: str = Query(default="vehicles", description="Source collection name"),
+    _: bool = Depends(require_admin)
+):
+    """
+    Sync vehicles from a source collection to admin_vehicles.
+    
+    This endpoint:
+    1. Reads from the specified source collection
+    2. Normalizes the data to admin format
+    3. Upserts into admin_vehicles by VIN
+    
+    Use this to fix mismatches between public API and admin panel.
+    
+    **Rate limited**: Can only be run once per minute.
+    """
+    # Rate limiting
+    client_ip = request.client.host if request.client else "unknown"
+    import time
+    current_time = time.time()
+    last_run = sync_last_run.get(client_ip, 0)
+    
+    if (current_time - last_run) < SYNC_COOLDOWN_SECONDS:
+        remaining = int(SYNC_COOLDOWN_SECONDS - (current_time - last_run))
+        raise HTTPException(
+            status_code=429,
+            detail=f"Sync can only be run once per minute. Please wait {remaining} seconds."
+        )
+    
+    # Check if source collection exists
+    collections = await db.list_collection_names()
+    if source_collection not in collections:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Source collection '{source_collection}' not found. Available: {collections}"
+        )
+    
+    source = db[source_collection]
+    target = db["admin_vehicles"]
+    
+    inserted = 0
+    updated = 0
+    skipped = 0
+    errors = []
+    
+    # Get all documents from source
+    cursor = source.find({})
+    docs = await cursor.to_list(length=1000)
+    
+    logger.info(f"Sync starting: {len(docs)} documents from '{source_collection}'")
+    
+    for doc in docs:
+        try:
+            # Get VIN (try different field names)
+            vin = doc.get("vin") or doc.get("VIN") or doc.get("Vin")
+            
+            if not vin:
+                skipped += 1
+                continue
+            
+            # Normalize the document
+            normalized = normalize_vehicle_for_admin(doc)
+            normalized["vin"] = vin
+            normalized["updated_at"] = datetime.now(timezone.utc)
+            
+            # Upsert by VIN
+            result = await target.update_one(
+                {"vin": vin},
+                {
+                    "$set": normalized,
+                    "$setOnInsert": {"created_at": datetime.now(timezone.utc)}
+                },
+                upsert=True
+            )
+            
+            if result.upserted_id:
+                inserted += 1
+            elif result.modified_count:
+                updated += 1
+                
+        except Exception as e:
+            logger.error(f"Sync error for doc: {e}")
+            errors.append(str(e)[:100])
+            skipped += 1
+    
+    # Update rate limit tracker
+    sync_last_run[client_ip] = current_time
+    
+    # Get final count
+    final_count = await target.count_documents({})
+    
+    logger.info(f"Sync complete: {inserted} inserted, {updated} updated, {skipped} skipped")
+    
+    return {
+        "success": True,
+        "source_collection": source_collection,
+        "target_collection": "admin_vehicles",
+        "results": {
+            "inserted": inserted,
+            "updated": updated,
+            "skipped": skipped,
+            "errors": errors[:5] if errors else [],
+        },
+        "final_admin_count": final_count,
+    }
+
+
+def normalize_vehicle_for_admin(doc: dict) -> dict:
+    """
+    Normalize a vehicle document from any source to admin_vehicles format.
+    
+    Handles common field name variations and data type differences.
+    """
+    # Price normalization
+    price = doc.get("price") or doc.get("internetPrice") or doc.get("salePrice") or doc.get("Price")
+    if price is not None:
+        try:
+            if isinstance(price, str):
+                price = float(price.replace(",", "").replace("$", "").strip())
+            price = float(price)
+        except (ValueError, TypeError):
+            price = None
+    
+    # Mileage normalization
+    mileage = doc.get("mileage") or doc.get("odometer") or doc.get("Mileage")
+    if mileage is not None:
+        try:
+            if isinstance(mileage, str):
+                mileage = int(mileage.replace(",", "").strip())
+            mileage = int(mileage)
+        except (ValueError, TypeError):
+            mileage = None
+    
+    # Year normalization
+    year = doc.get("year") or doc.get("Year")
+    if year is not None:
+        try:
+            year = int(year)
+        except (ValueError, TypeError):
+            year = None
+    
+    # Images normalization
+    images = doc.get("images") or doc.get("photos") or doc.get("image_urls") or []
+    if isinstance(images, str):
+        images = [{"url": images, "is_primary": True}]
+    elif isinstance(images, list):
+        # Normalize to [{url, is_primary}] format
+        normalized_images = []
+        for i, img in enumerate(images):
+            if isinstance(img, str):
+                normalized_images.append({"url": img, "is_primary": i == 0})
+            elif isinstance(img, dict):
+                normalized_images.append(img)
+        images = normalized_images
+    
+    # Handle primary_image_url separately
+    primary_url = doc.get("primary_image_url") or doc.get("image_url")
+    if primary_url and not images:
+        images = [{"url": primary_url, "is_primary": True}]
+    
+    return {
+        "stock_number": doc.get("stock_number") or doc.get("stock") or doc.get("stockNumber") or doc.get("stock_id"),
+        "year": year,
+        "make": (doc.get("make") or doc.get("Make") or "").strip(),
+        "model": (doc.get("model") or doc.get("Model") or "").strip(),
+        "trim": (doc.get("trim") or doc.get("Trim") or "").strip(),
+        "mileage": mileage,
+        "price": price,
+        "condition": doc.get("condition") or doc.get("Condition") or "Used",
+        "body_style": doc.get("body_style") or doc.get("bodyStyle") or doc.get("body") or "",
+        "exterior_color": doc.get("exterior_color") or doc.get("exteriorColor") or doc.get("color") or "",
+        "interior_color": doc.get("interior_color") or doc.get("interiorColor") or "",
+        "transmission": doc.get("transmission") or doc.get("Transmission") or "",
+        "drivetrain": doc.get("drivetrain") or doc.get("driveType") or "",
+        "fuel_type": doc.get("fuel_type") or doc.get("fuelType") or "",
+        "engine": doc.get("engine") or doc.get("Engine") or "",
+        "carfax_url": doc.get("carfax_url") or doc.get("carfaxUrl") or "",
+        "window_sticker_url": doc.get("window_sticker_url") or doc.get("windowStickerUrl") or "",
+        "images": images,
+        "is_active": doc.get("is_active", True),
+        "is_featured_homepage": doc.get("is_featured_homepage", False),
+        "featured_rank": doc.get("featured_rank"),
+        "call_for_availability_enabled": doc.get("call_for_availability_enabled", False),
+        "sync_source": "admin_sync",
+    }
+
+
 # Get Single Vehicle
 @router.get("/vehicles/{vehicle_id}", response_model=VehicleInDB)
 async def get_vehicle(vehicle_id: str, _: bool = Depends(require_admin)):

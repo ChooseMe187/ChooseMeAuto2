@@ -204,10 +204,27 @@ async def debug_vehicle_counts(_: bool = Depends(require_admin)):
     counts = {}
     sample_fields = {}
     
+    # The EXACT filter, sort, and limit used in list_vehicles endpoint
+    admin_query_config = {
+        "filter": {},  # No filter applied
+        "sort": {"created_at": -1},
+        "limit": 500,
+        "collection": "admin_vehicles",
+    }
+    
     # Check admin_vehicles (what admin panel uses)
     admin_coll = db["admin_vehicles"]
     counts["admin_vehicles_total"] = await admin_coll.count_documents({})
     counts["admin_vehicles_active"] = await admin_coll.count_documents({"is_active": {"$ne": False}})
+    
+    # Apply the EXACT same query as list_vehicles to show what admin panel sees
+    admin_cursor = admin_coll.find(
+        admin_query_config["filter"]
+    ).sort(
+        list(admin_query_config["sort"].items())
+    ).limit(admin_query_config["limit"])
+    admin_results = await admin_cursor.to_list(admin_query_config["limit"])
+    counts["admin_vehicles_query_result"] = len(admin_results)
     
     # Get sample document fields from admin_vehicles
     sample_admin = await admin_coll.find_one({})
@@ -217,6 +234,7 @@ async def debug_vehicle_counts(_: bool = Depends(require_admin)):
     if "vehicles" in collections:
         vehicles_coll = db["vehicles"]
         counts["vehicles_total"] = await vehicles_coll.count_documents({})
+        counts["vehicles_active"] = await vehicles_coll.count_documents({"is_active": {"$ne": False}})
         sample_public = await vehicles_coll.find_one({})
         sample_fields["vehicles"] = list((sample_public or {}).keys()) if sample_public else []
     
@@ -225,20 +243,27 @@ async def debug_vehicle_counts(_: bool = Depends(require_admin)):
         if "vehicle" in coll_name.lower() and coll_name not in ["admin_vehicles", "vehicles"]:
             counts[f"{coll_name}_total"] = await db[coll_name].count_documents({})
     
-    # The filter used in list_vehicles endpoint
-    admin_filter = {}  # Currently no filter applied
-    
     return {
         "db_name": db.name,
         "collections": collections,
         "counts": counts,
-        "admin_list_filter": admin_filter,
-        "admin_list_query": "coll.find({}).sort('created_at', -1).limit(500)",
+        "admin_query": {
+            "description": "Exact query used by GET /api/admin/vehicles",
+            "collection": admin_query_config["collection"],
+            "filter": admin_query_config["filter"],
+            "sort": admin_query_config["sort"],
+            "limit": admin_query_config["limit"],
+            "result_count": counts["admin_vehicles_query_result"],
+        },
         "sample_doc_fields": sample_fields,
         "diagnosis": {
             "admin_vehicles_has_data": counts.get("admin_vehicles_total", 0) > 0,
             "vehicles_collection_exists": "vehicles" in collections,
-            "potential_mismatch": counts.get("vehicles_total", 0) != counts.get("admin_vehicles_total", 0) if "vehicles" in collections else False,
+            "potential_collection_mismatch": (
+                counts.get("vehicles_total", 0) > 0 and 
+                counts.get("admin_vehicles_total", 0) != counts.get("vehicles_total", 0)
+            ) if "vehicles" in collections else False,
+            "query_returns_all": counts["admin_vehicles_query_result"] == counts["admin_vehicles_total"],
         }
     }
 
